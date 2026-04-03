@@ -661,14 +661,14 @@ const T = {
 };
 
 const BACKGROUNDS = {
-  plage:'linear-gradient(175deg,#1a7abf 0%,#3a9fd4 18%,#72c8f0 30%,#f4c97a 48%,#f0a830 58%,#e8952a 66%,#c87820 74%,#d4944a 84%,#b8864a 92%,#a07040 100%)',
-  hiver:'linear-gradient(180deg,#5baad4 0%,#8ac4e8 15%,#b4d9f2 28%,#d8eeff 42%,#f8fdff 58%,#ffffff 68%,#f0f8ff 76%,#e0eef8 86%,#b8d4ea 100%)',
-  ville:'linear-gradient(180deg,#020614 0%,#060c28 20%,#0e1840 40%,#1a1040 60%,#0a0820 80%,#030210 100%)',
-  montagne:'linear-gradient(180deg,#1a3a5c 0%,#3a6898 25%,#5a8ab8 45%,#607868 58%,#384830 68%,#c8cac8 80%,#f0f4f8 100%)',
-  foret:'linear-gradient(180deg,#0a1a06 0%,#1a3c10 20%,#2a7020 45%,#1e5018 65%,#0e2808 85%,#081404 100%)',
-  coeur:'linear-gradient(160deg,#1a0018 0%,#9a0060 35%,#ee2080 58%,#ff6060 78%,#ffa030 100%)',
-  gateau:'linear-gradient(145deg,#1a0040 0%,#8000c0 30%,#d040b0 55%,#f080a0 78%,#ffb0d0 100%)',
-  robot:'linear-gradient(160deg,#010208 0%,#050c20 25%,#0a1a40 50%,#102858 72%,#0f4c75 100%)'
+  plage:'url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&w=1200")',
+  hiver:'url("https://images.unsplash.com/photo-1516912481808-3406841bd33c?auto=format&w=1200")',
+  ville:'url("https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&w=1200")',
+  montagne:'url("https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&w=1200")',
+  foret:'url("https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&w=1200")',
+  coeur:'url("https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&w=1200")',
+  gateau:'url("https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&w=1200")',
+  robot:'url("https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&w=1200")'
 };
 
 // ── UTILS ──────────────────────────────────────────────────────────────────
@@ -810,9 +810,7 @@ function applyConfig(){
   }
   const _bg=BACKGROUNDS[cfg.coverBg]||BACKGROUNDS.plage;
   const _cvr=document.getElementById('cover');
-  const isUrl=_bg.startsWith('url(');
-  _cvr.style.backgroundImage=isUrl?_bg:'none';
-  _cvr.style.background=isUrl?'':_bg;
+  _cvr.style.backgroundImage=_bg;
   _cvr.style.backgroundSize='cover';
   _cvr.style.backgroundPosition='center';
   _cvr.style.backgroundSize='cover';
@@ -1341,7 +1339,7 @@ function renderSettings(){
   const bgGrid=document.getElementById('bg-grid');
   bgGrid.innerHTML=Object.keys(BACKGROUNDS).map(key=>`
     <div onclick="selectBg('${key}')" style="cursor:pointer;border-radius:10px;overflow:hidden;border:3px solid ${cfg.coverBg===key?'var(--accent)':'transparent'};transition:border-color 0.2s">
-      <div style="height:60px;background:${BACKGROUNDS[key]};background-image:${BACKGROUNDS[key]};background-size:cover;background-position:center;border-radius:6px"></div>
+      <div style="height:60px;background-image:${BACKGROUNDS[key]};background-size:cover;background-position:center;border-radius:6px"></div>
       <div style="background:var(--surface);padding:6px;text-align:center;font-size:0.8rem;font-weight:600">${T[lang].bgLabels[key]}</div>
     </div>`).join('');
 }
