@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Planivo — Smart Planner</title>
-<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIlBsYW5pdm8gXHUyMDE0IFNtYXJ0IFBsYW5uZXIiLCAic2hvcnRfbmFtZSI6ICJQbGFuaXZvIiwgImRlc2NyaXB0aW9uIjogIlBsYW5pZmljYXRldXIgcGVyc29ubmVsIGludGVsbGlnZW50IFx1MjAxNCBjYWxlbmRyaWVyLCB0XHUwMGUyY2hlcywgYnVkZ2V0LCBwcm9maWwgLyBTbWFydCBwZXJzb25hbCBwbGFubmVyIiwgInN0YXJ0X3VybCI6ICIvUGxhbml2by8iLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgImJhY2tncm91bmRfY29sb3IiOiAiIzFhMWEyZSIsICJ0aGVtZV9jb2xvciI6ICIjMzI4MmI4IiwgIm9yaWVudGF0aW9uIjogInBvcnRyYWl0LXByaW1hcnkiLCAibGFuZyI6ICJmciIsICJpY29ucyI6IFt7InNyYyI6ICIvUGxhbml2by9pY29uLTE5Mi5wbmciLCAic2l6ZXMiOiAiMTkyeDE5MiIsICJ0eXBlIjogImltYWdlL3BuZyJ9LCB7InNyYyI6ICIvUGxhbml2by9pY29uLTUxMi5wbmciLCAic2l6ZXMiOiAiNTEyeDUxMiIsICJ0eXBlIjogImltYWdlL3BuZyJ9XSwgImNhdGVnb3JpZXMiOiBbInByb2R1Y3Rpdml0eSIsICJsaWZlc3R5bGUiXSwgInNjb3BlIjogIi9QbGFuaXZvLyJ9">
+<link rel="manifest" href="/Planivo/manifest.json">
 <meta name="theme-color" content="#3282b8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -123,6 +123,15 @@ th{font-weight:700;opacity:0.8}
 .rel-famille{background:rgba(50,130,184,0.22);color:#7ec8e3}
 .rel-ami{background:rgba(16,185,129,0.22);color:#34d399}
 .rel-collegue{background:rgba(245,158,11,0.22);color:#fbbf24}
+/* ── INSTALL BUTTON ── */
+#install-banner{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:2000;background:#3282b8;color:#fff;border:none;padding:14px 28px;border-radius:28px;font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,0.4);white-space:nowrap;font-family:inherit;animation:fadeIn 0.4s ease}
+#install-banner.visible{display:flex;align-items:center;gap:10px}
+#install-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;padding:16px}
+#install-modal.show{display:flex}
+.install-box{background:var(--surface);border-radius:20px;padding:24px;max-width:480px;width:100%;border:2px solid var(--accent)}
+.install-step{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.07)}
+.install-step:last-child{border-bottom:none}
+.install-step-num{background:var(--accent);color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0}
 </style>
 
 </head>
@@ -642,14 +651,14 @@ const T = {
 };
 
 const BACKGROUNDS = {
-  plage:'url("https://images.pexels.com/photos/1032650/pexels-photo-1032650.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop")',
-  hiver:'url("https://images.pexels.com/photos/813872/pexels-photo-813872.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop")',
-  ville:'url("https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop")',
-  montagne:'url("https://images.pexels.com/photos/1366919/pexels-photo-1366919.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop")',
-  foret:'url("https://images.pexels.com/photos/167698/pexels-photo-167698.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop")',
-  coeur:'url("https://images.pexels.com/photos/931177/pexels-photo-931177.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop")',
-  gateau:'url("https://images.pexels.com/photos/1157557/pexels-photo-1157557.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop")',
-  robot:'url("https://images.pexels.com/photos/373543/pexels-photo-373543.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop")'
+  plage:'linear-gradient(175deg, #1a7abf 0%, #3a9fd4 18%, #72c8f0 30%, #f4c97a 48%, #f0a830 58%, #e8952a 66%, #c87820 74%, #d4944a 84%, #b8864a 92%, #a07040 100%)',
+  hiver:'linear-gradient(180deg, #5baad4 0%, #8ac4e8 12%, #b4d9f2 24%, #d8eeff 38%, #eef8ff 50%, #f8fdff 60%, #ffffff 68%, #f0f8ff 76%, #e0eef8 84%, #cce0f0 92%, #b8d4ea 100%)',
+  ville:'radial-gradient(ellipse at 25% 65%, rgba(255,180,40,0.35) 0%, transparent 28%), radial-gradient(ellipse at 65% 55%, rgba(255,120,20,0.25) 0%, transparent 22%), radial-gradient(ellipse at 80% 70%, rgba(255,200,80,0.2) 0%, transparent 18%), linear-gradient(180deg, #020614 0%, #060c28 25%, #0e1840 50%, #1a1040 70%, #0a0820 100%)',
+  montagne:'linear-gradient(180deg, #1a3a5c 0%, #2a5080 15%, #3a6898 28%, #4a7aaa 38%, #5a8ab8 46%, #7090a0 54%, #607868 60%, #485840 66%, #384830 72%, #c8cac8 78%, #dcdee0 84%, #e8ecf0 92%, #f0f4f8 100%)',
+  foret:'radial-gradient(ellipse at 50% 0%, rgba(80,160,40,0.4) 0%, transparent 50%), linear-gradient(180deg, #0a1a06 0%, #122a0a 12%, #1a3c10 24%, #246018 36%, #2a7020 46%, #1e5018 56%, #163810 66%, #0e2808 78%, #0a1e06 88%, #081404 100%)',
+  coeur:'radial-gradient(ellipse at 50% 40%, rgba(255,100,150,0.5) 0%, transparent 55%), linear-gradient(160deg, #1a0018 0%, #5a0038 20%, #9a0060 38%, #cc0070 52%, #ee2080 62%, #ff4090 72%, #ff6060 82%, #ff8040 94%, #ffa030 100%)',
+  gateau:'radial-gradient(ellipse at 30% 30%, rgba(255,220,100,0.4) 0%, transparent 45%), radial-gradient(ellipse at 70% 60%, rgba(255,100,200,0.3) 0%, transparent 40%), linear-gradient(145deg, #1a0040 0%, #4a0080 18%, #8000c0 34%, #b020c0 48%, #d040b0 60%, #e06090 70%, #f080a0 80%, #ff90c0 90%, #ffb0d0 100%)',
+  robot:'radial-gradient(ellipse at 40% 50%, rgba(50,130,184,0.3) 0%, transparent 45%), radial-gradient(ellipse at 75% 30%, rgba(0,200,255,0.15) 0%, transparent 35%), linear-gradient(160deg, #010208 0%, #030610 15%, #050c20 28%, #081530 40%, #0a1a40 52%, #0f2050 62%, #102858 72%, #0f3060 80%, #0a2a58 88%, #0f4c75 100%)'
 };
 
 // ── UTILS ──────────────────────────────────────────────────────────────────
@@ -791,7 +800,7 @@ function applyConfig(){
   }
   const _bg=BACKGROUNDS[cfg.coverBg]||BACKGROUNDS.plage;
   const _cvr=document.getElementById('cover');
-  _cvr.style.backgroundImage=_bg;
+  _cvr.style.background=_bg; _cvr.style.backgroundSize='cover'; _cvr.style.backgroundPosition='center';
   _cvr.style.backgroundSize='cover';
   _cvr.style.backgroundPosition='center';
   document.getElementById('col-bg').value=cfg.bg||defaultConfig.bg;
@@ -1302,7 +1311,7 @@ function renderSettings(){
   const bgGrid=document.getElementById('bg-grid');
   bgGrid.innerHTML=Object.keys(BACKGROUNDS).map(key=>`
     <div onclick="selectBg('${key}')" style="cursor:pointer;border-radius:10px;overflow:hidden;border:3px solid ${cfg.coverBg===key?'var(--accent)':'transparent'};transition:border-color 0.2s">
-      <div style="height:60px;background-image:${BACKGROUNDS[key]};background-size:cover;background-position:center"></div>
+      <div style="height:60px;background:${BACKGROUNDS[key]};background-size:cover;background-position:center"></div>
       <div style="background:var(--surface);padding:6px;text-align:center;font-size:0.8rem;font-weight:600">${T[lang].bgLabels[key]}</div>
     </div>`).join('');
 }
@@ -1857,6 +1866,7 @@ document.getElementById('cover').style.display='flex';
 renderCover();
 migrateProfileBirthdays();
 checkAlerts();
+if(!isStandalone()) setTimeout(showInstallBanner, 1500);
 if('serviceWorker' in navigator){
   // Désinscrire tous les anciens service workers
   navigator.serviceWorker.getRegistrations().then(regs=>{
@@ -1883,5 +1893,23 @@ window.addEventListener('beforeinstallprompt',e=>{
 });
 
 </script>
+
+<!-- INSTALL BANNER -->
+<button id="install-banner" onclick="handleInstallClick()">
+  <span>📲</span>
+  <span id="install-btn-text">Installer l'app</span>
+</button>
+
+<!-- INSTALL MODAL (instructions manuelles) -->
+<div id="install-modal">
+  <div class="install-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2 id="install-modal-title" style="font-weight:700;font-size:1.1rem;color:var(--text)">📲 Installer Planivo</h2>
+      <button onclick="closeInstallModal()" style="background:transparent;border:none;color:var(--text);font-size:1.4rem;cursor:pointer;padding:4px 8px">✕</button>
+    </div>
+    <div id="install-steps"></div>
+  </div>
+</div>
+
 </body>
 </html>
