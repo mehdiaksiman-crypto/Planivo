@@ -1927,6 +1927,133 @@ window.addEventListener('beforeinstallprompt',e=>{
   deferredPrompt=e;
 });
 
+// ── STANDALONE CHECK ───────────────────────────────────────────────────────
+function isStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone===true
+    || document.referrer.includes('android-app://');
+}
+
+// ── HAMBURGER NAVIGATION ───────────────────────────────────────────────────
+function toggleNav(){
+  const drawer=document.getElementById('nav-drawer');
+  const overlay=document.getElementById('nav-overlay');
+  if(!drawer) return;
+  if(drawer.classList.contains('open')){
+    drawer.classList.remove('open');
+    overlay.classList.remove('show');
+  } else {
+    renderNavMenu();
+    drawer.classList.add('open');
+    overlay.classList.add('show');
+  }
+}
+function closeNav(){
+  const drawer=document.getElementById('nav-drawer');
+  const overlay=document.getElementById('nav-overlay');
+  if(drawer) drawer.classList.remove('open');
+  if(overlay) overlay.classList.remove('show');
+}
+function renderNavMenu(){
+  const el=document.getElementById('nav-menu-content');
+  if(!el) return;
+  const fr=lang==='fr';
+  const items=[
+    {icon:'🏠',label:fr?'Couverture':'Cover',view:'cover'},
+    {icon:'📅',label:fr?'Vue Annuelle':'Year View',view:'year'},
+    {icon:'🗓️',label:fr?'Vue Mensuelle':'Month View',view:'month'},
+    {icon:'📝',label:fr?'Vue Journalière':'Day View',view:'day'},
+    {icon:'✅',label:fr?'Tâches':'Tasks',view:'tasks'},
+    {icon:'💰',label:fr?'Dépenses':'Expenses',view:'expenses'},
+    {icon:'💵',label:fr?'Revenus':'Income',view:'income'},
+    {icon:'📊',label:fr?'Budget':'Budget',view:'budget'},
+    {icon:'👤',label:fr?'Profil':'Profile',view:'profile'},
+    {icon:'⚙️',label:fr?'Paramètres':'Settings',view:'settings'},
+  ];
+  el.innerHTML=items.map(function(item){
+    var bg=currentView===item.view?'var(--bg)':'transparent';
+    return '<button onclick="showView(\'' +item.view+ '\')" style="display:flex;align-items:center;gap:12px;padding:14px 20px;cursor:pointer;font-weight:600;font-size:0.95rem;color:var(--text);background:'+bg+';border:none;width:100%;text-align:left;font-family:inherit;">'
+    +'<span style="font-size:1.3rem;width:28px;text-align:center">'+item.icon+'</span>'
+    +'<span>'+item.label+'</span></button>';
+  }).join('');
+}
+
+// ── INSTALL SYSTEM ─────────────────────────────────────────────────────────
+function showInstallBanner(){
+  const b=document.getElementById('install-banner');
+  if(!b) return;
+  if(isStandalone()){b.style.display='none';return;}
+  b.style.display='flex';
+  const txt=document.getElementById('install-btn-text');
+  if(txt) txt.textContent=lang==='fr'?"Installer l'app":"Install the app";
+}
+function handleInstallClick(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(c=>{
+      deferredPrompt=null;
+      if(c.outcome==='accepted'){const b=document.getElementById('install-banner');if(b)b.style.display='none';}
+    });
+  }
+  showInstallModal();
+}
+function showInstallModal(){
+  const modal=document.getElementById('install-modal');
+  const stepsDiv=document.getElementById('install-steps');
+  const title=document.getElementById('install-modal-title');
+  if(!modal) return;
+  const fr=lang==='fr';
+  if(title) title.textContent=fr?'📲 Installer Planivo':'📲 Install Planivo';
+  const ua=navigator.userAgent.toLowerCase();
+  let steps=[];
+  if(/iphone|ipad|ipod/.test(ua)){
+    steps=fr?[
+      {n:'1',text:'Appuie sur <strong>Partager ↑</strong> en bas de Safari'},
+      {n:'2',text:'Appuie sur <strong>Sur l\'écran d\'accueil</strong>'},
+      {n:'3',text:'Appuie sur <strong>Ajouter</strong>'}
+    ]:[
+      {n:'1',text:'Tap <strong>Share ↑</strong> at the bottom of Safari'},
+      {n:'2',text:'Tap <strong>"Add to Home Screen"</strong>'},
+      {n:'3',text:'Tap <strong>"Add"</strong>'}
+    ];
+  } else if(/android/.test(ua)){
+    steps=fr?[
+      {n:'1',text:'Menu <strong>⋮</strong> en haut à droite de Chrome'},
+      {n:'2',text:'<strong>Ajouter à l\'écran d\'accueil</strong>'},
+      {n:'3',text:'Confirme en appuyant sur <strong>"Ajouter"</strong>'}
+    ]:[
+      {n:'1',text:'<strong>⋮</strong> menu in Chrome top right'},
+      {n:'2',text:'<strong>"Add to Home screen"</strong>'},
+      {n:'3',text:'Tap <strong>"Add"</strong>'}
+    ];
+  } else {
+    steps=fr?[
+      {n:'1',text:'Clique l\'icône <strong>📲</strong> dans la barre d\'adresse Chrome'},
+      {n:'2',text:'Ou menu <strong>⋮</strong> \u2192 <strong>Installer Planivo</strong>'},
+      {n:'3',text:'Confirme'}
+    ]:[
+      {n:'1',text:'Click <strong>📲</strong> icon in Chrome address bar'},
+      {n:'2',text:'Or <strong>⋮</strong> menu → <strong>"Install Planivo"</strong>'},
+      {n:'3',text:'Confirm'}
+    ];
+  }
+  if(stepsDiv) stepsDiv.innerHTML=steps.map(s=>
+    '<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.07)">'
+    +'<div style="background:var(--accent);color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0">'+s.n+'</div>'
+    +'<div style="font-size:0.95rem;line-height:1.5;color:var(--text)">'+s.text+'</div></div>'
+  ).join('');
+  modal.classList.add('show');
+}
+function closeInstallModal(){
+  const modal=document.getElementById('install-modal');
+  if(modal) modal.classList.remove('show');
+}
+window.addEventListener('appinstalled',()=>{
+  deferredPrompt=null;
+  const b=document.getElementById('install-banner');
+  if(b) b.style.display='none';
+});
+
 </script>
 
 <!-- HAMBURGER MENU -->
