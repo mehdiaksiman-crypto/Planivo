@@ -4,16 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Planivo — Smart Planner</title>
-<base href="/Planivo/">
-<link rel="manifest" href="./manifest.json">
+<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIlBsYW5pdm8gXHUyMDE0IFNtYXJ0IFBsYW5uZXIiLCAic2hvcnRfbmFtZSI6ICJQbGFuaXZvIiwgImRlc2NyaXB0aW9uIjogIlBsYW5pZmljYXRldXIgcGVyc29ubmVsIGludGVsbGlnZW50IFx1MjAxNCBjYWxlbmRyaWVyLCB0XHUwMGUyY2hlcywgYnVkZ2V0LCBwcm9maWwgLyBTbWFydCBwZXJzb25hbCBwbGFubmVyIiwgInN0YXJ0X3VybCI6ICIvUGxhbml2by8iLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgImJhY2tncm91bmRfY29sb3IiOiAiIzFhMWEyZSIsICJ0aGVtZV9jb2xvciI6ICIjMzI4MmI4IiwgIm9yaWVudGF0aW9uIjogInBvcnRyYWl0LXByaW1hcnkiLCAibGFuZyI6ICJmciIsICJpY29ucyI6IFt7InNyYyI6ICIvUGxhbml2by9pY29uLTE5Mi5wbmciLCAic2l6ZXMiOiAiMTkyeDE5MiIsICJ0eXBlIjogImltYWdlL3BuZyJ9LCB7InNyYyI6ICIvUGxhbml2by9pY29uLTUxMi5wbmciLCAic2l6ZXMiOiAiNTEyeDUxMiIsICJ0eXBlIjogImltYWdlL3BuZyJ9XSwgImNhdGVnb3JpZXMiOiBbInByb2R1Y3Rpdml0eSIsICJsaWZlc3R5bGUiXSwgInNjb3BlIjogIi9QbGFuaXZvLyJ9">
 <meta name="theme-color" content="#3282b8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Planivo">
-<link rel="apple-touch-icon" href="./icon-192.png">
-<link rel="icon" type="image/x-icon" href="./favicon.ico">
-<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="apple-touch-icon" href="/Planivo/icon-192.png">
+<link rel="icon" type="image/x-icon" href="/Planivo/favicon.ico">
+<link rel="icon" type="image/png" sizes="192x192" href="/Planivo/icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -1804,10 +1803,8 @@ if('serviceWorker' in navigator){
   });
   // Réenregistrer proprement
   window.addEventListener('load',()=>{
-    const swPath = document.querySelector('script') 
-      ? (location.pathname.endsWith('/') ? location.pathname : location.pathname.replace(/\/[^\/]*$/, '/')) + 'service-worker.js'
-      : '/service-worker.js';
-    navigator.serviceWorker.register(swPath, {scope: location.pathname.replace(/\/[^\/]*$/, '/') || '/'})
+    const swPath = '/Planivo/service-worker.js';
+    navigator.serviceWorker.register(swPath, {scope: '/Planivo/'})
       .then(reg=>{ reg.update(); console.log('SW OK'); })
       .catch(e=>console.log('SW skip', e));
   });

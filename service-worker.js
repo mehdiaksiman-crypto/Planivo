@@ -1,11 +1,10 @@
-const CACHE_NAME = 'planivo-v4';
-const BASE = self.location.pathname.replace('/service-worker.js', '');
+const CACHE_NAME = 'planivo-v5';
 const ASSETS = [
-  BASE + '/',
-  BASE + '/index.html',
-  BASE + '/manifest.json',
-  BASE + '/icon-192.png',
-  BASE + '/icon-512.png'
+  '/Planivo/',
+  '/Planivo/index.html',
+  '/Planivo/manifest.json',
+  '/Planivo/icon-192.png',
+  '/Planivo/icon-512.png'
 ];
 
 self.addEventListener('install', event => {
@@ -28,7 +27,7 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
-      return fetch(event.request).catch(() => caches.match(BASE + '/index.html'));
+      return fetch(event.request).catch(() => caches.match('/Planivo/index.html'));
     })
   );
 });
