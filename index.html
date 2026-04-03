@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planivo — Smart Planner</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#3282b8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Planivo">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1a1a2e;--surface:#16213e;--text:#eaeaea;
+  --primary:#0f4c75;--accent:#3282b8;
+  --green:#10b981;--red:#dc2626;--amber:#f59e0b;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.title-font{font-family:'Playfair Display',serif}
+.fade-in{animation:fadeIn 0.4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+button{cursor:pointer;transition:transform 0.15s,opacity 0.15s;border:none;font-family:inherit}
+button:hover{transform:scale(1.04);opacity:0.93}
+button:active{transform:scale(0.97)}
+input,select,textarea{font-family:inherit;outline:none}
+.spinner{border:3px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;width:18px;height:18px;animation:spin 0.6s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--accent);color:#fff;padding:12px 24px;border-radius:12px;font-weight:600;z-index:9999;animation:fadeIn 0.3s ease}
+#lang-switch{position:fixed;top:16px;right:16px;z-index:9999;background:var(--surface);color:var(--text);border:2px solid var(--accent);padding:8px 16px;border-radius:20px;font-weight:700;font-size:14px}
+.view{min-height:100vh;padding:24px;display:none}
+.view.active{display:block}
+
+/* Cover */
+#cover{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background-size:cover;background-position:center;min-height:100vh;position:relative}
+#cover h1{font-size:clamp(2rem,6vw,4rem);text-shadow:2px 2px 8px rgba(0,0,0,0.4);margin-bottom:1.5rem}
+#cover .owner-badge{background:var(--accent);color:#fff;padding:12px 32px;border-radius:32px;font-size:1.3rem;font-weight:700;margin-bottom:1rem;display:inline-block}
+#cover .btn-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:2rem}
+.btn-primary{background:var(--accent);color:#fff;padding:14px 32px;border-radius:12px;font-weight:700;font-size:1rem}
+.btn-secondary{background:var(--surface);color:var(--text);padding:14px 32px;border-radius:12px;font-weight:700;font-size:1rem;border:2px solid var(--primary)}
+
+/* TOC */
+.toc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;max-width:1100px;margin:0 auto}
+.toc-card{background:var(--surface);border-radius:16px;padding:28px;border-left:6px solid var(--accent);cursor:pointer;transition:transform 0.2s}
+.toc-card:hover{transform:translateX(8px)}
+.toc-card .icon{font-size:2.5rem;margin-bottom:12px}
+.toc-card h2{font-size:1.3rem;font-weight:700;margin-bottom:8px}
+.toc-card p{opacity:0.75;font-size:0.9rem}
+
+/* Calendar */
+.cal-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:24px;max-width:1200px;margin-left:auto;margin-right:auto}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;max-width:1200px;margin:0 auto}
+.day-name{background:var(--surface);border-radius:8px;padding:10px;text-align:center;font-weight:700}
+.cal-day{background:var(--surface);border-radius:10px;padding:12px;min-height:90px;cursor:pointer;transition:transform 0.15s;border:3px solid transparent}
+.cal-day:hover{transform:translateY(-3px)}
+.cal-day.today{border-color:var(--accent)}
+.cal-day.holiday{border-color:var(--amber)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;margin:1px}
+.year-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;max-width:1200px;margin:0 auto}
+.month-card{background:var(--surface);border-radius:16px;padding:24px;cursor:pointer;transition:transform 0.2s;text-align:center}
+.month-card:hover{transform:scale(1.03)}
+
+/* Forms */
+.form-card{background:var(--surface);border-radius:16px;padding:28px;margin-bottom:20px;max-width:700px;margin-left:auto;margin-right:auto}
+.form-card h2{font-size:1.4rem;font-weight:700;margin-bottom:20px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-weight:600;margin-bottom:6px;font-size:0.95rem}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:12px 16px;border-radius:10px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:1rem}
+.form-group textarea{resize:vertical;min-height:80px}
+.btn-submit{width:100%;padding:14px;border-radius:12px;background:var(--accent);color:#fff;font-weight:700;font-size:1rem;display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-delete{background:var(--red);color:#fff;padding:8px 16px;border-radius:8px;font-weight:700}
+.btn-back{background:var(--surface);color:var(--text);padding:10px 20px;border-radius:8px;font-weight:600;border:2px solid var(--primary);margin-bottom:24px}
+.btn-nav{background:var(--primary);color:#fff;padding:10px 20px;border-radius:8px;font-weight:700}
+.list-card{background:var(--surface);border-radius:16px;padding:24px;max-width:900px;margin:0 auto}
+.list-item{background:var(--bg);border-radius:10px;padding:16px;margin-bottom:12px;border-left:6px solid var(--accent);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.list-item.completed{opacity:0.6;border-color:var(--green)}
+.list-item .info h3{font-weight:700;margin-bottom:4px}
+.list-item .info p{opacity:0.7;font-size:0.9rem}
+
+/* Budget */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;max-width:900px;margin:0 auto 24px}
+.stat-card{background:var(--surface);border-radius:14px;padding:20px;text-align:center}
+.stat-card .label{opacity:0.7;font-size:0.85rem;margin-bottom:8px}
+.stat-card .value{font-size:2rem;font-weight:700}
+.bar-row{margin-bottom:16px}
+.bar-row .bar-label{display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.9rem}
+.bar-track{height:12px;background:var(--bg);border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px;transition:width 0.5s ease}
+
+/* Settings */
+.color-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-top:16px}
+.color-item{text-align:center}
+.color-item label{display:block;font-size:0.85rem;font-weight:600;margin-bottom:8px;opacity:0.8}
+.color-item input[type=color]{width:70px;height:70px;border-radius:14px;border:3px solid rgba(255,255,255,0.3);cursor:pointer;display:block;margin:0 auto}
+.section-title{font-size:1.8rem;font-weight:700;text-align:center;margin-bottom:24px}
+.max-w{max-width:900px;margin:0 auto}
+.profile-block{background:var(--surface);border-radius:14px;padding:20px;margin-bottom:16px}
+.age-badge{background:var(--accent);color:#fff;padding:8px 20px;border-radius:20px;font-weight:700;font-size:1.1rem;display:inline-block;margin-top:8px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.08)}
+th{font-weight:700;opacity:0.8}
+.guide-section{background:var(--bg);border-radius:12px;padding:16px;margin-bottom:12px}
+/* ── ALERT MODAL ── */
+#alert-modal{position:fixed;top:0;left:0;right:0;bottom:0;z-index:10000;background:rgba(0,0,0,0.78);padding:16px;display:none;overflow-y:auto}
+#alert-modal.show{display:flex;align-items:flex-start;justify-content:center;padding-top:32px}
+.alert-box{background:var(--surface);border-radius:20px;padding:24px;max-width:560px;width:100%;border:2px solid var(--accent);box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.alert-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.07)}
+.alert-item:last-child{border-bottom:none}
+.alert-icon{font-size:1.4rem;min-width:28px;line-height:1.4}
+/* ── TASKS ── */
+.list-item.overdue{border-left-color:var(--red)!important}
+.overdue-badge{background:var(--red);color:#fff;padding:2px 8px;border-radius:8px;font-size:0.75rem;font-weight:700;margin-left:6px;vertical-align:middle;display:inline-block}
+.postpone-row{display:none;margin-top:8px;gap:8px;align-items:center;flex-wrap:wrap}
+.postpone-row.open{display:flex}
+/* ── BIRTHDAYS ── */
+.bday-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block;margin:1px}
+.rel-badge{padding:3px 10px;border-radius:10px;font-size:0.75rem;font-weight:700;display:inline-block;margin-top:4px}
+.rel-famille{background:rgba(50,130,184,0.22);color:#7ec8e3}
+.rel-ami{background:rgba(16,185,129,0.22);color:#34d399}
+.rel-collegue{background:rgba(245,158,11,0.22);color:#fbbf24}
+</style>
+
+</head>
+<body>
+
+<button id="lang-switch" onclick="toggleLang()">EN</button>
+
+<!-- COVER -->
+<div id="cover" class="fade-in">
+  <div style="background:rgba(0,0,0,0.45);padding:48px 24px;border-radius:24px;max-width:700px;width:100%;position:relative;z-index:10">
+    <div style="margin-bottom:1.5rem">
+  <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <!-- Cercle fond -->
+    <circle cx="50" cy="50" r="48" fill="#16304a"/>
+    <!-- Cerveau gauche -->
+    <path d="M30,35 C18,35 12,45 16,57 C12,59 10,67 16,73 C18,81 30,81 36,75 L36,39 C33,37 30,35 30,35Z" fill="#3282b8" opacity="0.95"/>
+    <!-- Cerveau droite -->
+    <path d="M64,39 L64,75 C70,81 82,81 84,73 C90,67 88,59 84,57 C88,45 82,35 70,35 C67,35 66,37 64,39Z" fill="#5ba3d0" opacity="0.95"/>
+    <!-- Trait central -->
+    <line x1="50" y1="30" x2="50" y2="78" stroke="#0f1923" stroke-width="3"/>
+    <!-- Connexions neurones gauche -->
+    <circle cx="18" cy="52" r="4" fill="#7ec8e3"/>
+    <circle cx="14" cy="66" r="3" fill="#7ec8e3"/>
+    <!-- Connexions neurones droite -->
+    <circle cx="82" cy="52" r="4" fill="#7ec8e3"/>
+    <circle cx="86" cy="66" r="3" fill="#7ec8e3"/>
+    <!-- Calendrier bas -->
+    <rect x="34" y="80" width="32" height="14" rx="4" fill="#3282b8"/>
+    <line x1="34" y1="87" x2="66" y2="87" stroke="#0f1923" stroke-width="1.5"/>
+    <line x1="45" y1="80" x2="45" y2="94" stroke="#0f1923" stroke-width="1.5"/>
+    <line x1="55" y1="80" x2="55" y2="94" stroke="#0f1923" stroke-width="1.5"/>
+    <!-- Crochets calendrier -->
+    <rect x="40" y="76" width="5" height="8" rx="2.5" fill="#7ec8e3"/>
+    <rect x="55" y="76" width="5" height="8" rx="2.5" fill="#7ec8e3"/>
+  </svg>
+</div>
+    <h1 class="title-font" id="cover-title"><span style="color:#eaeaea">Plan</span><span style="color:#3282b8">ivo</span></h1>
+    <div class="owner-badge" id="cover-owner">Votre nom</div>
+    <p id="cover-subtitle" style="opacity:0.85;font-size:1.1rem;margin-top:8px">Planificateur personnel intelligent</p>
+    <div class="btn-row">
+      <button class="btn-primary" id="btn-start" onclick="showView('toc')">Commencer →</button>
+      <button class="btn-secondary" id="btn-customize" onclick="showView('settings')">⚙️ Personnaliser</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOC -->
+<div id="toc" class="view">
+  <button class="btn-back" onclick="showView('cover')" id="btn-back-cover">← Couverture</button>
+  <h2 class="section-title title-font" id="toc-title">📑 Table des Matières</h2>
+  <div class="toc-grid" id="toc-grid"></div>
+</div>
+
+<!-- YEAR -->
+<div id="year" class="view">
+  <div class="cal-header">
+    <button class="btn-back" onclick="showView('toc')">← Menu</button>
+    <h2 class="title-font" id="year-title" style="font-size:2rem"></h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn-nav" onclick="changeYear(-1)">←</button>
+      <button class="btn-nav" onclick="changeYear(1)">→</button>
+    </div>
+  </div>
+  <div class="year-grid" id="year-grid"></div>
+</div>
+
+<!-- MONTH -->
+<div id="month" class="view">
+  <div class="cal-header">
+    <button class="btn-back" onclick="showView('year')">← Année</button>
+    <h2 class="title-font" id="month-title" style="font-size:2rem"></h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn-nav" onclick="changeMonth(-1)">←</button>
+      <button class="btn-nav" onclick="changeMonth(1)">→</button>
+    </div>
+  </div>
+  <div class="cal-grid" id="day-names"></div>
+  <div class="cal-grid" id="month-grid" style="margin-top:8px"></div>
+</div>
+
+<!-- DAY -->
+<div id="day" class="view">
+  <div class="cal-header">
+    <button class="btn-back" onclick="showView('month')">← Calendrier</button>
+    <h2 class="title-font" id="day-title" style="font-size:1.4rem;text-align:center"></h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn-nav" onclick="changeDay(-1)">←</button>
+      <button class="btn-nav" onclick="changeDay(1)">→</button>
+    </div>
+  </div>
+  <div class="form-card">
+    <h2 id="add-event-title">✨ Ajouter un événement</h2>
+    <div class="form-group"><label id="lbl-ev-title">Titre</label><input id="ev-title" type="text" required></div>
+    <div class="form-group"><label id="lbl-ev-time">Heure</label><input id="ev-time" type="time"></div>
+    <div class="form-group"><label id="lbl-ev-desc">Description</label><textarea id="ev-desc"></textarea></div>
+    <button class="btn-submit" onclick="addEvent()"><span id="ev-submit-text">Ajouter</span><div class="spinner" id="ev-spinner"></div></button>
+  </div>
+  <div class="list-card">
+    <h2 id="events-list-title" style="font-weight:700;font-size:1.3rem;margin-bottom:16px">📋 Événements</h2>
+    <div id="events-list"></div>
+  </div>
+</div>
+
+<!-- TASKS -->
+<div id="tasks" class="view">
+  <button class="btn-back" onclick="showView('toc')">← Menu</button>
+  <h2 class="section-title title-font" id="tasks-title">✅ Mes Tâches</h2>
+  <div class="form-card">
+    <h2 id="add-task-label">➕ Nouvelle tâche</h2>
+    <div class="form-group"><label id="lbl-task-title">Titre</label><input id="task-title" type="text" required></div>
+    <div class="form-group"><label id="lbl-task-date">Date d'échéance</label><input id="task-date" type="date"></div>
+    <button class="btn-submit" onclick="addTask()"><span id="task-submit-text">Ajouter</span><div class="spinner" id="task-spinner"></div></button>
+  </div>
+  <div class="list-card" style="max-width:700px;margin:0 auto">
+    <div id="pending-tasks"></div>
+    <div id="done-tasks"></div>
+  </div>
+</div>
+
+<!-- EXPENSES -->
+<div id="expenses" class="view">
+  <div class="cal-header">
+    <button class="btn-back" onclick="showView('toc')">← Menu</button>
+    <h2 class="title-font" id="exp-title" style="font-size:1.6rem">💰 Dépenses</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn-nav" onclick="changeFinanceMonth(-1)">←</button>
+      <button class="btn-nav" onclick="changeFinanceMonth(1)">→</button>
+    </div>
+  </div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="label" id="lbl-total-exp">Total dépenses</div><div class="value" id="exp-total" style="color:var(--red)">0.00</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;max-width:1100px;margin:0 auto 24px">
+    <div class="form-card" style="margin:0">
+      <h2 id="add-exp-label">➕ Ajouter une dépense</h2>
+      <div class="form-group"><label id="lbl-exp-desc">Description</label><input id="exp-desc" type="text" required></div>
+      <div class="form-group"><label id="lbl-exp-amount">Montant</label><input id="exp-amount" type="number" step="0.01" min="0" required></div>
+      <div class="form-group"><label id="lbl-exp-cat">Catégorie</label>
+        <select id="exp-cat">
+          <option value="Alimentation">🍔 Alimentation</option>
+          <option value="Transport">🚗 Transport</option>
+          <option value="Logement">🏠 Logement</option>
+          <option value="Santé">⚕️ Santé</option>
+          <option value="Loisirs">🎮 Loisirs</option>
+          <option value="Shopping">🛍️ Shopping</option>
+          <option value="Éducation">📚 Éducation</option>
+          <option value="Autres">💳 Autres</option>
+        </select>
+      </div>
+      <div class="form-group"><label id="lbl-exp-date">Date</label><input id="exp-date" type="date"></div>
+      <button class="btn-submit" onclick="addExpense()"><span id="exp-submit-text">Ajouter</span><div class="spinner" id="exp-spinner"></div></button>
+    </div>
+    <div class="form-card" style="margin:0">
+      <h2 id="lbl-by-cat">📊 Par catégorie</h2>
+      <div id="exp-cat-bars"></div>
+    </div>
+  </div>
+  <div class="list-card" style="max-width:1100px;margin:0 auto;overflow-x:auto">
+    <h2 id="lbl-exp-list" style="font-weight:700;font-size:1.2rem;margin-bottom:16px">📝 Liste</h2>
+    <table><thead><tr><th id="th-date">Date</th><th id="th-desc">Description</th><th id="th-cat">Catégorie</th><th id="th-amount">Montant</th><th></th></tr></thead><tbody id="exp-table"></tbody></table>
+  </div>
+</div>
+
+<!-- INCOME -->
+<div id="income" class="view">
+  <div class="cal-header">
+    <button class="btn-back" onclick="showView('toc')">← Menu</button>
+    <h2 class="title-font" id="inc-title" style="font-size:1.6rem">💵 Revenus</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn-nav" onclick="changeFinanceMonth(-1)">←</button>
+      <button class="btn-nav" onclick="changeFinanceMonth(1)">→</button>
+    </div>
+  </div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="label" id="lbl-total-inc">Total revenus</div><div class="value" id="inc-total" style="color:var(--green)">0.00</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;max-width:1100px;margin:0 auto 24px">
+    <div class="form-card" style="margin:0">
+      <h2 id="add-inc-label">➕ Ajouter un revenu</h2>
+      <div class="form-group"><label id="lbl-inc-desc">Description</label><input id="inc-desc" type="text" required></div>
+      <div class="form-group"><label id="lbl-inc-amount">Montant</label><input id="inc-amount" type="number" step="0.01" min="0" required></div>
+      <div class="form-group"><label id="lbl-inc-cat">Catégorie</label>
+        <select id="inc-cat">
+          <option value="Salaire">💼 Salaire</option>
+          <option value="Freelance">💻 Freelance</option>
+          <option value="Investissements">📈 Investissements</option>
+          <option value="Loyer reçu">🏠 Loyer reçu</option>
+          <option value="Vente">🛒 Vente</option>
+          <option value="Bonus">🎁 Bonus</option>
+          <option value="Autres">💵 Autres</option>
+        </select>
+      </div>
+      <div class="form-group"><label id="lbl-inc-date">Date</label><input id="inc-date" type="date"></div>
+      <button class="btn-submit" onclick="addIncome()" style="background:var(--green)"><span id="inc-submit-text">Ajouter</span><div class="spinner" id="inc-spinner"></div></button>
+    </div>
+    <div class="form-card" style="margin:0">
+      <h2 id="lbl-inc-by-cat">📊 Par catégorie</h2>
+      <div id="inc-cat-bars"></div>
+    </div>
+  </div>
+  <div class="list-card" style="max-width:1100px;margin:0 auto;overflow-x:auto">
+    <h2 id="lbl-inc-list" style="font-weight:700;font-size:1.2rem;margin-bottom:16px">📝 Liste</h2>
+    <table><thead><tr><th id="th-date2">Date</th><th id="th-desc2">Description</th><th id="th-cat2">Catégorie</th><th id="th-amount2">Montant</th><th></th></tr></thead><tbody id="inc-table"></tbody></table>
+  </div>
+</div>
+
+<!-- BUDGET -->
+<div id="budget" class="view">
+  <div class="cal-header">
+    <button class="btn-back" onclick="showView('toc')">← Menu</button>
+    <h2 class="title-font" id="budget-title" style="font-size:1.8rem">📊 Budget Mensuel</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn-nav" onclick="changeFinanceMonth(-1)">←</button>
+      <button class="btn-nav" onclick="changeFinanceMonth(1)">→</button>
+    </div>
+  </div>
+  <div class="stat-grid" id="budget-stats"></div>
+  <div class="max-w">
+    <div class="form-card">
+      <h2 id="lbl-budget-chart">📈 Répartition</h2>
+      <div id="budget-bars"></div>
+    </div>
+    <div class="form-card">
+      <h2 id="lbl-budget-tips">💡 Conseils</h2>
+      <div id="budget-tips"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div id="profile" class="view">
+  <button class="btn-back" onclick="showView('toc')">← Menu</button>
+  <h2 class="section-title title-font" id="profile-title">👤 Mon Profil</h2>
+  <div class="max-w" id="profile-content"></div>
+</div>
+
+<!-- SETTINGS -->
+<div id="settings" class="view">
+  <button class="btn-back" onclick="showView('toc')">← Menu</button>
+  <h2 class="section-title title-font" id="settings-title">⚙️ Paramètres</h2>
+  <div class="max-w">
+    <!-- Guide -->
+    <div class="form-card">
+      <h2 id="lbl-guide">📖 Mode d'emploi</h2>
+      <div id="guide-content" style="margin-top:16px"></div>
+    </div>
+    <!-- Name -->
+    <div class="form-card">
+      <h2 id="lbl-name-setting">✍️ Nom du propriétaire</h2>
+      <div class="form-group" style="margin-top:12px"><input id="owner-input" type="text" placeholder="Votre nom"></div>
+      <button class="btn-submit" onclick="saveName()" id="save-name-btn"><span id="save-name-text">✓ Confirmer</span></button>
+    </div>
+    <!-- Currency -->
+    <div class="form-card">
+      <h2 id="lbl-currency">💱 Devise</h2>
+      <div class="form-group" style="margin-top:12px"><input id="currency-input" type="text" placeholder="€, $, £..."></div>
+      <button class="btn-submit" onclick="saveCurrency()"><span id="save-currency-text">✓ Confirmer</span></button>
+    </div>
+    <!-- Alert Settings -->
+    <div class="form-card" id="alert-settings-card">
+      <h2 id="lbl-alert-advance">⏰ Délai de rappel</h2>
+      <div class="form-group" style="margin-top:12px">
+        <select id="alert-advance-select" onchange="saveAlertAdvance(this.value)" style="padding:12px 16px;border-radius:10px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:1rem;width:100%">
+          <option value="0">Jour même / Same day</option>
+          <option value="1">1 jour / 1 day</option>
+          <option value="2">2 jours / 2 days</option>
+          <option value="3">3 jours / 3 days</option>
+        </select>
+      </div>
+    </div>
+    <!-- Country -->
+    <div class="form-card">
+      <h2 id="lbl-country-setting">🌍 Pays / Country</h2>
+      <div class="form-group" style="margin-top:12px">
+        <select id="country-select" onchange="saveCountry(this.value)" style="padding:12px 16px;border-radius:10px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:1rem;width:100%">
+          <option value="canada">🇨🇦 Canada</option>
+          <option value="usa">🇺🇸 United States / États-Unis</option>
+          <option value="international">🌍 International</option>
+        </select>
+      </div>
+      <p id="lbl-country-desc" style="font-size:0.85rem;opacity:0.6;margin-top:8px"></p>
+    </div>
+    <!-- Cover -->
+    <div class="form-card">
+      <h2 id="lbl-cover-bg">🖼️ Fond de couverture</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-top:16px" id="bg-grid"></div>
+    </div>
+    <!-- Colors -->
+    <div class="form-card">
+      <h2 id="lbl-colors">🎨 Couleurs</h2>
+      <div class="color-grid">
+        <div class="color-item"><label id="lbl-col-bg">Fond</label><input type="color" id="col-bg" onchange="updateCSSVar('--bg',this.value)"></div>
+        <div class="color-item"><label id="lbl-col-surface">Cartes</label><input type="color" id="col-surface" onchange="updateCSSVar('--surface',this.value)"></div>
+        <div class="color-item"><label id="lbl-col-text">Texte</label><input type="color" id="col-text" onchange="updateCSSVar('--text',this.value)"></div>
+        <div class="color-item"><label id="lbl-col-primary">Principal</label><input type="color" id="col-primary" onchange="updateCSSVar('--primary',this.value)"></div>
+        <div class="color-item"><label id="lbl-col-accent">Accent</label><input type="color" id="col-accent" onchange="updateCSSVar('--accent',this.value)"></div>
+      </div>
+      <button class="btn-secondary" onclick="resetColors()" style="margin-top:20px;width:100%;padding:12px;border-radius:10px" id="btn-reset-colors">🔄 Réinitialiser</button>
+    </div>
+
+    <div class="form-card">
+      <h2 id="lbl-backup">💾 Sauvegarde &amp; Restauration</h2>
+      <p id="lbl-backup-desc" style="opacity:0.7;font-size:0.9rem;margin:12px 0 20px">Exportez vos données pour les sauvegarder ou les transférer sur un autre appareil. Si vous nettoyez votre navigateur, importez ce fichier pour tout restaurer.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <button onclick="exportData()" class="btn-submit" style="background:var(--green)">
+          <span id="lbl-export">📥 Exporter mes données</span>
+        </button>
+        <button onclick="document.getElementById('import-file').click()" class="btn-submit" style="background:var(--primary)">
+          <span id="lbl-import">📤 Restaurer mes données</span>
+        </button>
+      </div>
+      <button onclick="showQRSync()" class="btn-submit" style="background:var(--accent);width:100%">
+        <span id="lbl-qr">📱 Transférer vers un autre appareil (QR Code)</span>
+      </button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+      <div id="backup-status" style="margin-top:16px;text-align:center;font-size:0.95rem;font-weight:600;min-height:24px"></div>
+
+      <!-- QR Modal -->
+      <div id="qr-modal" style="display:none;margin-top:24px;background:var(--bg);border-radius:16px;padding:24px;text-align:center;border:2px solid var(--accent)">
+        <h3 id="qr-modal-title" style="font-weight:700;font-size:1.1rem;margin-bottom:8px">📱 Scanner avec votre autre appareil</h3>
+        <p id="qr-modal-desc" style="font-size:0.85rem;opacity:0.7;margin-bottom:16px">Ouvrez Planivo sur votre téléphone → Paramètres → Importer QR</p>
+        <div id="qr-size-warning" style="display:none;background:rgba(245,158,11,0.15);border:1px solid var(--amber);border-radius:10px;padding:10px;margin-bottom:16px;font-size:0.85rem;color:var(--amber)"></div>
+        <div id="qr-container" style="display:flex;justify-content:center;margin-bottom:16px">
+          <div id="qr-code" style="background:#fff;padding:16px;border-radius:12px;display:inline-block"></div>
+        </div>
+        <p id="qr-steps" style="font-size:0.82rem;opacity:0.65;line-height:1.6"></p>
+        <button onclick="closeQR()" class="btn-secondary" style="margin-top:16px;padding:10px 28px;border-radius:10px" id="btn-close-qr">✕ Fermer</button>
+      </div>
+
+      <!-- QR Import section -->
+      <div style="margin-top:16px;border-top:1px solid rgba(255,255,255,0.1);padding-top:16px">
+        <p id="lbl-qr-import-title" style="font-weight:600;font-size:0.9rem;margin-bottom:10px;opacity:0.8">📷 Importer depuis un QR Code</p>
+        <button onclick="document.getElementById('qr-image-input').click()" class="btn-secondary" style="width:100%;padding:12px;border-radius:10px" id="btn-scan-qr">
+          <span id="lbl-scan-qr">📸 Charger une capture du QR Code</span>
+        </button>
+        <input type="file" id="qr-image-input" accept="image/*" style="display:none" onchange="importFromQRImage(event)">
+        <p id="lbl-qr-tip" style="font-size:0.8rem;opacity:0.55;margin-top:8px;text-align:center">Faites une capture d'écran du QR Code et chargez-la ici</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ALERT MODAL -->
+<div id="alert-modal">
+  <div class="alert-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2 id="alert-modal-hdr" style="font-weight:700;font-size:1.2rem">🔔 Rappels</h2>
+      <button onclick="dismissAlerts()" id="btn-alert-dismiss" style="background:var(--accent);color:#fff;padding:8px 20px;border-radius:10px;font-weight:700">Compris ✓</button>
+    </div>
+    <div id="alert-list"></div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+let lang = 'fr';
+let currentView = 'cover';
+let currentDate = new Date();
+let selectedDate = new Date();
+let financeDate = new Date();
+
+const defaultConfig = {
+  bg:'#1a1a2e', surface:'#16213e', text:'#eaeaea',
+  primary:'#0f4c75', accent:'#3282b8',
+  ownerName:'Votre nom', currency:'$',
+  coverBg:'plage', lang:'fr', alertAdvance:1, alertDismissedDate:'', country:'canada'
+};
+
+function loadData(){
+  try{return JSON.parse(localStorage.getItem('agenda_data')||'[]')}catch{return[]}
+}
+function saveData(d){localStorage.setItem('agenda_data',JSON.stringify(d))}
+function loadConfig(){
+  try{return Object.assign({},defaultConfig,JSON.parse(localStorage.getItem('agenda_cfg')||'{}'))}catch{return Object.assign({},defaultConfig)}
+}
+function saveConfig(c){localStorage.setItem('agenda_cfg',JSON.stringify(c))}
+
+let cfg = loadConfig();
+let data = loadData();
+
+// ── TRANSLATIONS ───────────────────────────────────────────────────────────
+const T = {
+  fr:{
+    months:['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'],
+    days:['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'],
+    daysFull:['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'],
+    start:'Commencer →', customize:'⚙️ Personnaliser', backCover:'← Couverture',
+    toc:'📑 Table des Matières',
+    tocItems:[
+      {icon:'📅',title:'Vue Annuelle',desc:'Tous les mois en un coup d\'œil'},
+      {icon:'🗓️',title:'Vue Mensuelle',desc:'Calendrier détaillé par mois'},
+      {icon:'📝',title:'Vue Journalière',desc:'Gérez vos événements quotidiens'},
+      {icon:'✅',title:'Tâches',desc:'Organisez et suivez vos tâches'},
+      {icon:'💰',title:'Dépenses',desc:'Suivi de vos dépenses mensuelles'},
+      {icon:'💵',title:'Revenus',desc:'Enregistrez vos sources de revenus'},
+      {icon:'📊',title:'Budget',desc:'Vue d\'ensemble de vos finances'},
+      {icon:'👤',title:'Profil',desc:'Informations personnelles et familiales'},
+      {icon:'⚙️',title:'Paramètres',desc:'Personnalisez votre agenda'}
+    ],
+    tocViews:['year','month','day','tasks','expenses','income','budget','profile','settings'],
+    addEvent:'✨ Ajouter un événement', evTitle:'Titre', evTime:'Heure', evDesc:'Description',
+    add:'Ajouter', noEvents:'Aucun événement pour ce jour',
+    tasks:'✅ Mes Tâches', addTask:'➕ Nouvelle tâche', taskTitle:'Titre', dueDate:'Date d\'échéance',
+    todo:'📝 À faire', done:'✔️ Terminées', noTasks:'Aucune tâche',
+    expenses:'💰 Dépenses Mensuelles', income:'💵 Revenus Mensuels', budget:'📊 Budget Mensuel',
+    totalExp:'Total dépenses', totalInc:'Total revenus', balance:'Solde',
+    byCat:'📊 Par catégorie', list:'📝 Liste',
+    date:'Date', desc:'Description', cat:'Catégorie', amount:'Montant',
+    addExp:'➕ Ajouter une dépense', addInc:'➕ Ajouter un revenu',
+    profile:'👤 Mon Profil', myInfo:'Mes Informations', gender:'Genre', birthdate:'Date de naissance',
+    age:'ans', partner:'Mon/Ma Partenaire', partnerName:'Nom', children:'Mes Enfants',
+    addChild:'➕ Ajouter un enfant', firstName:'Prénom', save:'💾 Enregistrer',
+    settings:'⚙️ Paramètres', guide:'📖 Mode d\'emploi', ownerName:'✍️ Nom du propriétaire',
+    currency:'💱 Devise', coverBg:'🖼️ Fond de couverture', colors:'🎨 Couleurs',
+    confirm:'✓ Confirmer', reset:'🔄 Réinitialiser', subtitle:'Planificateur personnel',
+    saved:'Enregistré ✓', deleted:'Supprimé', error:'Erreur',
+    eventAdded:'Événement ajouté ✓', taskAdded:'Tâche ajoutée ✓',
+    expAdded:'Dépense ajoutée ✓', incAdded:'Revenu ajouté ✓',
+    balanced:'Budget équilibré', over:'Budget dépassé', economy:'Économisé',
+    male:'Masculin', female:'Féminin', other:'Autre',
+    guideText:[
+      {icon:'📅',title:'Vue Annuelle',text:'Visualisez tous les 12 mois. Cliquez sur un mois pour la vue détaillée.'},
+      {icon:'🗓️',title:'Vue Mensuelle',text:'Naviguez avec ← →. Cliquez sur un jour pour ajouter des événements.'},
+      {icon:'📝',title:'Vue Journalière',text:'Ajoutez des événements avec titre, heure et description.'},
+      {icon:'✅',title:'Tâches',text:'Créez des tâches avec échéance. Cochez pour marquer comme terminé.'},
+      {icon:'💰',title:'Finances',text:'Enregistrez dépenses et revenus par catégorie. Le budget récapitule tout.'},
+      {icon:'🎨',title:'Personnalisation',text:'Changez les couleurs, le nom, la devise et le fond dans Paramètres.'},
+      {icon:'💾',title:'Sauvegarde',text:'Toutes vos données sont sauvegardées automatiquement dans votre navigateur.'}
+    ],
+    holidays:{},  // dynamique — voir getHolidayMap()
+    bgLabels:{plage:'Plage',hiver:'Hiver',ville:'Ville',montagne:'Montagne',foret:'Forêt',coeur:'Amour',gateau:'Fête',robot:'Tech'},
+    birthday:'🎂 Anniversaires',addBirthday:'➕ Ajouter',noBirthdays:'Aucun anniversaire ajouté',
+    bdayName:'Prénom',bdayRelation:'Relation',
+    relFamille:'Famille',relAmi:'Ami(e)',relCollegue:'Collègue',
+    alertTitle:'🔔 Rappels du jour',alertDismiss:'Compris ✓',
+    alertAdvanceLabel:'⏰ Délai de rappel (en jours)',
+    postpone:'📅 Reporter',postponeConfirm:'✓ OK',cancelBtn:'✕',
+    overdue:'En retard',bdaySoon:'Anniversaire de',inDays:'dans {n} jour(s)'
+  },
+  en:{
+    months:['January','February','March','April','May','June','July','August','September','October','November','December'],
+    days:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    daysFull:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+    start:'Get Started →', customize:'⚙️ Customize', backCover:'← Cover',
+    toc:'📑 Table of Contents',
+    tocItems:[
+      {icon:'📅',title:'Year View',desc:'All months at a glance'},
+      {icon:'🗓️',title:'Month View',desc:'Detailed monthly calendar'},
+      {icon:'📝',title:'Day View',desc:'Manage your daily events'},
+      {icon:'✅',title:'Tasks',desc:'Organize and track your tasks'},
+      {icon:'💰',title:'Expenses',desc:'Track your monthly expenses'},
+      {icon:'💵',title:'Income',desc:'Record your income sources'},
+      {icon:'📊',title:'Budget',desc:'Overview of your finances'},
+      {icon:'👤',title:'Profile',desc:'Personal & family information'},
+      {icon:'⚙️',title:'Settings',desc:'Customize your planner'}
+    ],
+    tocViews:['year','month','day','tasks','expenses','income','budget','profile','settings'],
+    addEvent:'✨ Add an Event', evTitle:'Title', evTime:'Time', evDesc:'Description',
+    add:'Add', noEvents:'No events for this day',
+    tasks:'✅ My Tasks', addTask:'➕ New task', taskTitle:'Title', dueDate:'Due date',
+    todo:'📝 To do', done:'✔️ Completed', noTasks:'No tasks yet',
+    expenses:'💰 Monthly Expenses', income:'💵 Monthly Income', budget:'📊 Monthly Budget',
+    totalExp:'Total expenses', totalInc:'Total income', balance:'Balance',
+    byCat:'📊 By category', list:'📝 List',
+    date:'Date', desc:'Description', cat:'Category', amount:'Amount',
+    addExp:'➕ Add an expense', addInc:'➕ Add income',
+    profile:'👤 My Profile', myInfo:'My Information', gender:'Gender', birthdate:'Date of birth',
+    age:'years old', partner:'My Partner', partnerName:'Name', children:'My Children',
+    addChild:'➕ Add a child', firstName:'First name', save:'💾 Save',
+    settings:'⚙️ Settings', guide:'📖 User Guide', ownerName:'✍️ Owner name',
+    currency:'💱 Currency', coverBg:'🖼️ Cover background', colors:'🎨 Colors',
+    confirm:'✓ Confirm', reset:'🔄 Reset', subtitle:'Personal planner',
+    saved:'Saved ✓', deleted:'Deleted', error:'Error',
+    eventAdded:'Event added ✓', taskAdded:'Task added ✓',
+    expAdded:'Expense added ✓', incAdded:'Income added ✓',
+    balanced:'Budget balanced', over:'Over budget', economy:'Saved',
+    male:'Male', female:'Female', other:'Other',
+    guideText:[
+      {icon:'📅',title:'Year View',text:'See all 12 months. Click on a month for the detailed view.'},
+      {icon:'🗓️',title:'Month View',text:'Navigate with ← →. Click a day to add events.'},
+      {icon:'📝',title:'Day View',text:'Add events with title, time and description.'},
+      {icon:'✅',title:'Tasks',text:'Create tasks with due dates. Check to mark complete.'},
+      {icon:'💰',title:'Finances',text:'Log expenses and income by category. Budget summarizes everything.'},
+      {icon:'🎨',title:'Customization',text:'Change colors, name, currency and background in Settings.'},
+      {icon:'💾',title:'Storage',text:'All your data is automatically saved in your browser.'}
+    ],
+    holidays:{},  // dynamique — voir getHolidayMap()
+    bgLabels:{plage:'Beach',hiver:'Winter',ville:'City',montagne:'Mountain',foret:'Forest',coeur:'Love',gateau:'Party',robot:'Tech'},
+    birthday:'🎂 Birthdays',addBirthday:'➕ Add',noBirthdays:'No birthdays added yet',
+    bdayName:'First name',bdayRelation:'Relation',
+    relFamille:'Family',relAmi:'Friend',relCollegue:'Colleague',
+    alertTitle:"🔔 Today's Reminders",alertDismiss:'Got it ✓',
+    alertAdvanceLabel:'⏰ Reminder advance (days)',
+    postpone:'📅 Postpone',postponeConfirm:'✓ OK',cancelBtn:'✕',
+    overdue:'Overdue',bdaySoon:'Birthday of',inDays:'in {n} day(s)'
+  }
+};
+
+const BACKGROUNDS = {
+  plage:'url("https://images.pexels.com/photos/1032650/pexels-photo-1032650.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop")',
+  hiver:'url("https://images.pexels.com/photos/813872/pexels-photo-813872.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop")',
+  ville:'url("https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop")',
+  montagne:'url("https://images.pexels.com/photos/1366919/pexels-photo-1366919.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop")',
+  foret:'url("https://images.pexels.com/photos/167698/pexels-photo-167698.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop")',
+  coeur:'url("https://images.pexels.com/photos/931177/pexels-photo-931177.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop")',
+  gateau:'url("https://images.pexels.com/photos/1157557/pexels-photo-1157557.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop")',
+  robot:'url("https://images.pexels.com/photos/373543/pexels-photo-373543.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop")'
+};
+
+// ── UTILS ──────────────────────────────────────────────────────────────────
+function t(key){return T[lang][key]||key}
+function showToast(msg){
+  const el=document.createElement('div');el.className='toast';el.textContent=msg;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),2800);
+}
+function dateStr(d){return d.toISOString().split('T')[0]}
+function calcAge(bd){
+  const today=new Date(),b=new Date(bd+'T00:00:00');
+  let age=today.getFullYear()-b.getFullYear();
+  if(today.getMonth()<b.getMonth()||(today.getMonth()===b.getMonth()&&today.getDate()<b.getDate()))age--;
+  return age;
+}
+// ── DYNAMIC HOLIDAY SYSTEM ────────────────────────────────────────────────
+let _holidayCache = {};
+let _holidayCacheYear = null;
+let _holidayCacheCountry = null;
+let _holidayCacheLang = null;
+
+function nthWeekday(year,month,weekday,n){
+  let count=0;
+  for(let day=1;day<=31;day++){
+    const d=new Date(year,month-1,day);
+    if(d.getMonth()!==month-1)break;
+    if(d.getDay()===weekday){count++;if(count===n)return day;}
+  }
+}
+function lastWeekday(year,month,weekday){
+  const last=new Date(year,month,0).getDate();
+  for(let day=last;day>=1;day--){if(new Date(year,month-1,day).getDay()===weekday)return day;}
+}
+function getEaster(y){
+  const a=y%19,b=Math.floor(y/100),c=y%100;
+  const d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3);
+  const h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4;
+  const l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451);
+  return{month:Math.floor((h+l-7*m+114)/31),day:((h+l-7*m+114)%31)+1};
+}
+
+function getHolidayMap(year){
+  const country=cfg.country||'canada';
+  const l=lang;
+  if(_holidayCacheYear===year&&_holidayCacheCountry===country&&_holidayCacheLang===l) return _holidayCache;
+  const fr=l==='fr';
+  const h={};
+
+  // ── Fêtes fixes communes ──
+  h['1-1']=fr?'🎆 Jour de l\'An':'🎆 New Year\'s Day';
+  h['2-14']=fr?'💖 Saint-Valentin':'💖 Valentine\'s Day';
+  h['12-24']=fr?'🎄 Réveillon de Noël':'🎄 Christmas Eve';
+  h['12-25']=fr?'🎅 Noël':'🎅 Christmas';
+  h['12-31']=fr?'🎊 Réveillon du Nouvel An':'🎊 New Year\'s Eve';
+
+  if(country==='canada'){
+    h['3-8']=fr?'👩 Journée de la Femme':'👩 Women\'s Day';
+    h['4-1']=fr?'🤡 Poisson d\'Avril':'🤡 April Fool\'s Day';
+    h['5-1']=fr?'🌹 Fête du Travail (Int.)':'🌹 International Labour Day';
+    h['6-19']=fr?'✊ Journée peuples autochtones':'✊ National Indigenous Peoples Day';
+    h['6-24']=fr?'🏳️ Fête nationale du Québec':'🏳️ Quebec National Day';
+    h['7-1']=fr?'🍁 Fête du Canada':'🍁 Canada Day';
+    h['10-31']='🎃 Halloween';
+    h['11-1']=fr?'🕯️ Toussaint':'🕯️ All Saints\' Day';
+    h['11-11']=fr?'🎖️ Jour du Souvenir':'🎖️ Remembrance Day';
+    h['12-26']=fr?'🎁 Boxing Day':'🎁 Boxing Day';
+    // Dynamiques
+    const easter=getEaster(year);
+    const gf=new Date(year,easter.month-1,easter.day-2);
+    h[`${gf.getMonth()+1}-${gf.getDate()}`]=fr?'✝️ Vendredi Saint':'✝️ Good Friday';
+    const em=new Date(year,easter.month-1,easter.day+1);
+    h[`${em.getMonth()+1}-${em.getDate()}`]=fr?'🐣 Lundi de Pâques':'🐣 Easter Monday';
+    let vic=new Date(year,4,24);
+    while(vic.getDay()!==1)vic.setDate(vic.getDate()-1);
+    h[`5-${vic.getDate()}`]=fr?'👑 Fête de la Reine':'👑 Victoria Day';
+    h[`5-${nthWeekday(year,5,0,2)}`]=fr?'💐 Fête des Mères':'💐 Mother\'s Day';
+    h[`6-${nthWeekday(year,6,0,3)}`]=fr?'👨 Fête des Pères':'👨 Father\'s Day';
+    h[`9-${nthWeekday(year,9,1,1)}`]=fr?'🔨 Fête du Travail':'🔨 Labour Day';
+    h[`10-${nthWeekday(year,10,1,2)}`]=fr?'🦃 Action de Grâce':'🦃 Thanksgiving';
+
+  } else if(country==='usa'){
+    h['3-17']='🍀 St. Patrick\'s Day';
+    h['4-1']='🤡 April Fool\'s Day';
+    h['6-14']='🇺🇸 Flag Day';
+    h['6-19']='✊ Juneteenth';
+    h['7-4']='🎆 Independence Day';
+    h['10-31']='🎃 Halloween';
+    h['11-11']='🎖️ Veterans Day';
+    // Dynamiques
+    const easter=getEaster(year);
+    const gf=new Date(year,easter.month-1,easter.day-2);
+    h[`${gf.getMonth()+1}-${gf.getDate()}`]='✝️ Good Friday';
+    h[`1-${nthWeekday(year,1,1,3)}`]='✊ MLK Day';
+    h[`2-${nthWeekday(year,2,1,3)}`]="🇺🇸 Presidents' Day";
+    h[`5-${nthWeekday(year,5,0,2)}`]="💐 Mother's Day";
+    h[`5-${lastWeekday(year,5,1)}`]='🎖️ Memorial Day';
+    h[`6-${nthWeekday(year,6,0,3)}`]="👨 Father's Day";
+    h[`9-${nthWeekday(year,9,1,1)}`]='🔨 Labor Day';
+    h[`10-${nthWeekday(year,10,1,2)}`]='⛵ Columbus Day';
+    h[`11-${nthWeekday(year,11,4,4)}`]='🦃 Thanksgiving';
+
+  } else { // international
+    h['3-8']=fr?'👩 Journée de la Femme':'👩 Women\'s Day';
+    h['4-1']=fr?'🤡 Poisson d\'Avril':'🤡 April Fool\'s Day';
+    h['5-1']=fr?'🌹 Fête du Travail':'🌹 Labour Day';
+    h['10-31']='🎃 Halloween';
+    h['11-1']=fr?'🕯️ Toussaint':'🕯️ All Saints\' Day';
+    const easter=getEaster(year);
+    h[`${easter.month}-${easter.day}`]=fr?'🐣 Pâques':'🐣 Easter';
+    h[`5-${nthWeekday(year,5,0,2)}`]=fr?'💐 Fête des Mères':'💐 Mother\'s Day';
+    h[`6-${nthWeekday(year,6,0,3)}`]=fr?'👨 Fête des Pères':'👨 Father\'s Day';
+  }
+
+  _holidayCache=h;
+  _holidayCacheYear=year;
+  _holidayCacheCountry=country;
+  _holidayCacheLang=l;
+  return h;
+}
+
+function getHoliday(month,day,year){
+  year=year||currentDate.getFullYear()||new Date().getFullYear();
+  const map=getHolidayMap(year);
+  return map[`${month+1}-${day}`]||null;
+}
+function getCurrency(){return cfg.currency||'$'}
+
+// ── APPLY CONFIG ───────────────────────────────────────────────────────────
+function applyConfig(){
+  document.documentElement.style.setProperty('--bg',cfg.bg||defaultConfig.bg);
+  document.documentElement.style.setProperty('--surface',cfg.surface||defaultConfig.surface);
+  document.documentElement.style.setProperty('--text',cfg.text||defaultConfig.text);
+  document.documentElement.style.setProperty('--primary',cfg.primary||defaultConfig.primary);
+  document.documentElement.style.setProperty('--accent',cfg.accent||defaultConfig.accent);
+  const co=document.getElementById('cover-owner');
+  if(co&&co.tagName==='INPUT'){co.value=cfg.ownerName&&cfg.ownerName!==defaultConfig.ownerName?cfg.ownerName:'';}
+  const _bg=BACKGROUNDS[cfg.coverBg]||BACKGROUNDS.plage;
+  const _cvr=document.getElementById('cover');
+  _cvr.style.backgroundImage=_bg;
+  _cvr.style.backgroundSize='cover';
+  _cvr.style.backgroundPosition='center';
+  document.getElementById('col-bg').value=cfg.bg||defaultConfig.bg;
+  document.getElementById('col-surface').value=cfg.surface||defaultConfig.surface;
+  document.getElementById('col-text').value=cfg.text||defaultConfig.text;
+  document.getElementById('col-primary').value=cfg.primary||defaultConfig.primary;
+  document.getElementById('col-accent').value=cfg.accent||defaultConfig.accent;
+  document.getElementById('owner-input').value=cfg.ownerName||'';
+  document.getElementById('currency-input').value=cfg.currency||'$';
+}
+function updateCSSVar(varName,val){
+  document.documentElement.style.setProperty(varName,val);
+  const map={'--bg':'bg','--surface':'surface','--text':'text','--primary':'primary','--accent':'accent'};
+  if(map[varName]){cfg[map[varName]]=val;saveConfig(cfg);}
+}
+function resetColors(){
+  cfg.bg=defaultConfig.bg;cfg.surface=defaultConfig.surface;cfg.text=defaultConfig.text;
+  cfg.primary=defaultConfig.primary;cfg.accent=defaultConfig.accent;
+  saveConfig(cfg);applyConfig();showToast('✓');
+}
+function saveName(){
+  cfg.ownerName=document.getElementById('owner-input').value.trim()||defaultConfig.ownerName;
+  saveConfig(cfg);applyConfig();showToast(t('saved'));
+}
+function saveCurrency(){
+  cfg.currency=document.getElementById('currency-input').value.trim()||'$';
+  saveConfig(cfg);showToast(t('saved'));
+}
+
+function saveCountry(val){
+  cfg.country=val;
+  _holidayCacheYear=null; // reset cache
+  saveConfig(cfg);
+  showToast(lang==='fr'?'✓ Pays mis à jour':'✓ Country updated');
+  renderView(currentView);
+}
+
+// ── VIEWS ──────────────────────────────────────────────────────────────────
+function showView(v){
+  currentView=v;
+  document.querySelectorAll('.view,#cover').forEach(el=>{
+    el.style.display='none';el.classList.remove('active');
+  });
+  const target=document.getElementById(v);
+  target.style.display=(v==='cover')?'flex':'block';
+  target.classList.add('active','fade-in');
+  setTimeout(()=>target.classList.remove('fade-in'),500);
+  renderView(v);
+  window.scrollTo(0,0);
+}
+
+function renderView(v){
+  if(v==='cover')renderCover();
+  else if(v==='toc')renderTOC();
+  else if(v==='year')renderYear();
+  else if(v==='month')renderMonth();
+  else if(v==='day')renderDay();
+  else if(v==='tasks')renderTasks();
+  else if(v==='expenses')renderExpenses();
+  else if(v==='income')renderIncome();
+  else if(v==='budget')renderBudget();
+  else if(v==='profile')renderProfile();
+  else if(v==='settings')renderSettings();
+}
+
+function renderCover(){
+  document.getElementById('cover-title').innerHTML=
+    '<span style="color:#eaeaea">Plan</span><span style="color:#3282b8">ivo</span>';
+  document.getElementById('cover-subtitle').textContent=lang==='fr'?'Planificateur personnel intelligent':'Your smart personal planner';
+  const ownerInput=document.getElementById('cover-owner');
+  if(ownerInput) ownerInput.value=cfg.ownerName&&cfg.ownerName!=='Votre nom'?cfg.ownerName:'';
+  if(ownerInput) ownerInput.placeholder=lang==='fr'?'Votre nom':'Your name';
+  document.getElementById('btn-start').textContent=t('start');
+  document.getElementById('btn-customize').textContent=t('customize');
+}
+
+function renderTOC(){
+  document.getElementById('toc-title').textContent=t('toc');
+  document.getElementById('btn-back-cover').textContent=t('backCover');
+  const g=document.getElementById('toc-grid');g.innerHTML='';
+  const items=t('tocItems');const views=t('tocViews');
+  items.forEach((item,i)=>{
+    const d=document.createElement('div');d.className='toc-card';
+    d.innerHTML=`<div class="icon">${item.icon}</div><h2>${item.title}</h2><p>${item.desc}</p>`;
+    d.onclick=()=>showView(views[i]);g.appendChild(d);
+  });
+}
+
+function renderYear(){
+  const y=currentDate.getFullYear();
+  document.getElementById('year-title').textContent=`📅 ${lang==='fr'?'Année':'Year'} ${y}`;
+  const g=document.getElementById('year-grid');g.innerHTML='';
+  T[lang].months.forEach((mName,mi)=>{
+    const ms=`${y}-${String(mi+1).padStart(2,'0')}`;
+    const evCount=data.filter(e=>e.date&&e.date.startsWith(ms)&&e.type==='event').length;
+    const d=document.createElement('div');d.className='month-card';
+    d.innerHTML=`<h2 style="font-size:1.3rem;font-weight:700;margin-bottom:8px">${mName}</h2>
+      <div style="display:inline-block;padding:6px 18px;border-radius:20px;background:${evCount>0?'var(--accent)':'var(--bg)'};color:${evCount>0?'#fff':'var(--text)'};font-weight:600;font-size:0.9rem">
+        ${evCount} ${lang==='fr'?(evCount>1?'événements':'événement'):(evCount>1?'events':'event')}
+      </div>`;
+    d.onclick=()=>{currentDate=new Date(y,mi,1);showView('month');};
+    g.appendChild(d);
+  });
+}
+
+function renderMonth(){
+  const y=currentDate.getFullYear(),m=currentDate.getMonth();
+  document.getElementById('month-title').textContent=`${T[lang].months[m]} ${y}`;
+  const firstDay=new Date(y,m,1);
+  let startDay=firstDay.getDay()-1;if(startDay<0)startDay=6;
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const dn=document.getElementById('day-names');dn.innerHTML='';
+  T[lang].days.forEach(d=>{const el=document.createElement('div');el.className='day-name';el.textContent=d;dn.appendChild(el);});
+  const g=document.getElementById('month-grid');g.innerHTML='';
+  for(let i=0;i<startDay;i++){const el=document.createElement('div');g.appendChild(el);}
+  for(let day=1;day<=daysInMonth;day++){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const evs=data.filter(e=>e.date===ds&&e.type==='event');
+    const isToday=new Date().toDateString()===new Date(y,m,day).toDateString();
+    const holiday=getHoliday(m,day);
+    const mmdd=`-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const bdaysToday=data.filter(e=>e.type==='birthday'&&e.date&&e.date.endsWith(mmdd));
+    const el=document.createElement('div');
+    el.className='cal-day'+(isToday?' today':'')+(holiday?' holiday':'');
+    el.innerHTML=`<div style="font-weight:700;font-size:1.1rem;margin-bottom:4px">${day}</div>
+      ${holiday?`<div style="font-size:0.7rem;color:var(--amber);font-weight:600">${holiday}</div>`:''}
+      ${bdaysToday.map(b=>`<div style="font-size:0.7rem;color:var(--amber);font-weight:600">🎂 ${b.title}</div>`).join('')}
+      <div>${evs.slice(0,3).map(()=>`<span class="dot"></span>`).join('')}${bdaysToday.slice(0,2).map(()=>`<span class="bday-dot"></span>`).join('')}${evs.length>3?`<span style="font-size:0.75rem">+${evs.length-3}</span>`:''}</div>`;
+    el.onclick=()=>{selectedDate=new Date(y,m,day);showView('day');};
+    g.appendChild(el);
+  }
+}
+
+function renderDay(){
+  const dn=T[lang].daysFull[selectedDate.getDay()];
+  const mn=T[lang].months[selectedDate.getMonth()];
+  const holiday=getHoliday(selectedDate.getMonth(),selectedDate.getDate(),selectedDate.getFullYear());
+  document.getElementById('day-title').innerHTML=`${dn} ${selectedDate.getDate()} ${mn} ${selectedDate.getFullYear()}${holiday?`<br><span style="font-size:0.9rem;color:var(--amber)">${holiday}</span>`:''}`;
+  document.getElementById('add-event-title').textContent=t('addEvent');
+  document.getElementById('lbl-ev-title').textContent=t('evTitle');
+  document.getElementById('lbl-ev-time').textContent=t('evTime');
+  document.getElementById('lbl-ev-desc').textContent=t('evDesc');
+  document.getElementById('ev-submit-text').textContent=t('add');
+  const ds=dateStr(selectedDate);
+  const evs=data.filter(e=>e.date===ds&&e.type==='event').sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const list=document.getElementById('events-list');
+  const mmdd2=`-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
+  const bdaysList=data.filter(e=>e.type==='birthday'&&e.date&&e.date.endsWith(mmdd2));
+  let bdayHTML='';
+  if(bdaysList.length>0){
+    const relClass={'famille':'rel-famille','ami':'rel-ami','collegue':'rel-collegue'};
+    bdayHTML=`<div style="background:rgba(245,158,11,0.1);border:1px solid var(--amber);border-radius:12px;padding:14px;margin-bottom:16px">
+      <h3 style="font-weight:700;color:var(--amber);margin-bottom:10px">🎂 ${lang==='fr'?'Anniversaires du jour':'Birthdays today'}</h3>
+      ${bdaysList.map(b=>`<div style="padding:6px 0;border-bottom:1px solid rgba(245,158,11,0.15)">
+        <span style="font-weight:700">${b.title}</span>
+        ${b.date?` — <span style="opacity:0.8">${calcAge(b.date)} ${t('age')}</span>`:''}
+        <span class="rel-badge ${relClass[b.relation]||'rel-famille'}" style="margin-left:8px">${b.relation}</span>
+      </div>`).join('')}
+    </div>`;
+  }
+  document.getElementById('events-list-title').textContent=`📋 ${lang==='fr'?'Événements':'Events'} (${evs.length})`;
+  if(evs.length===0){
+    list.innerHTML=bdayHTML+`<p style="opacity:0.5;text-align:center;padding:24px">${t('noEvents')}</p>`;
+    return;
+  }
+  list.innerHTML=bdayHTML+evs.map(e=>`
+    <div class="list-item">
+      <div class="info">
+        <h3>${e.time?`🕐 ${e.time} — `:''}${e.title}</h3>
+        ${e.description?`<p>${e.description}</p>`:''}
+      </div>
+      <button class="btn-delete" onclick="deleteItem('${e.id}','day')" title="Supprimer">🗑️</button>
+    </div>`).join('');
+}
+
+function renderTasks(){
+  document.getElementById('tasks-title').textContent=t('tasks');
+  document.getElementById('add-task-label').textContent=t('addTask');
+  document.getElementById('lbl-task-title').textContent=t('taskTitle');
+  document.getElementById('lbl-task-date').textContent=t('dueDate');
+  document.getElementById('task-submit-text').textContent=t('add');
+  const todayStr=dateStr(new Date());
+  const tasks=data.filter(e=>e.type==='task');
+  const pending=tasks.filter(tk=>!tk.completed);
+  const done=tasks.filter(tk=>tk.completed);
+  const pd=document.getElementById('pending-tasks');
+  const dd=document.getElementById('done-tasks');
+  if(pending.length>0){
+    pd.innerHTML=`<h3 style="font-weight:700;margin-bottom:12px;font-size:1.1rem">${t('todo')} (${pending.length})</h3>`+
+      pending.map(task=>{
+        const isOverdue=task.date&&task.date<todayStr;
+        const overdueHTML=isOverdue?`<span class="overdue-badge">⚠️ ${t('overdue')}</span>`:'';
+        const dateHTML=task.date?`<p style="margin-top:4px">📅 ${new Date(task.date+'T00:00:00').toLocaleDateString(lang==='fr'?'fr-FR':'en-CA',{day:'numeric',month:'long'})}${overdueHTML}</p>`:'';
+        return `<div class="list-item${isOverdue?' overdue':''}">
+          <div style="display:flex;align-items:flex-start;gap:10px;flex:1">
+            <input type="checkbox" style="margin-top:4px;width:20px;height:20px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="toggleTask('${task.id}',true)">
+            <div class="info" style="flex:1">
+              <h3>${task.title}</h3>${dateHTML}
+              <div class="postpone-row" id="pp-row-${task.id}">
+                <input type="date" id="pp-date-${task.id}" min="${todayStr}" style="padding:6px 10px;border-radius:8px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:0.9rem">
+                <button onclick="confirmPostpone('${task.id}')" style="background:var(--green);color:#fff;padding:6px 14px;border-radius:8px;font-weight:700;font-size:0.85rem">${t('postponeConfirm')}</button>
+                <button onclick="cancelPostpone('${task.id}')" style="background:var(--surface);color:var(--text);padding:6px 12px;border-radius:8px;font-weight:600;font-size:0.85rem;border:1px solid rgba(255,255,255,0.15)">${t('cancelBtn')}</button>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+            <button onclick="postponeTask('${task.id}')" style="background:var(--primary);color:#fff;padding:5px 10px;border-radius:8px;font-weight:700;font-size:0.78rem;white-space:nowrap">${t('postpone')}</button>
+            <button class="btn-delete" onclick="deleteItem('${task.id}','tasks')">🗑️</button>
+          </div>
+        </div>`;
+      }).join('');
+  } else {
+    pd.innerHTML=`<p style="opacity:0.5;text-align:center;padding:20px">${t('noTasks')}</p>`;
+  }
+  dd.innerHTML=done.length>0?`<h3 style="font-weight:700;margin:20px 0 12px;font-size:1.1rem">${t('done')} (${done.length})</h3>`+
+    done.map(task=>`<div class="list-item completed">
+      <div style="display:flex;align-items:flex-start;gap:10px;flex:1">
+        <input type="checkbox" checked style="margin-top:4px;width:20px;height:20px;accent-color:var(--green);cursor:pointer" onchange="toggleTask('${task.id}',false)">
+        <div class="info"><h3 style="text-decoration:line-through">${task.title}</h3></div>
+      </div>
+      <button class="btn-delete" onclick="deleteItem('${task.id}','tasks')">🗑️</button>
+    </div>`).join(''):'';
+}
+
+function getMonthStr(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
+
+function renderExpenses(){
+  const ms=getMonthStr(financeDate);
+  const label=`${T[lang].months[financeDate.getMonth()]} ${financeDate.getFullYear()}`;
+  document.getElementById('exp-title').textContent=`💰 ${t('expenses')} — ${label}`;
+  document.getElementById('add-exp-label').textContent=t('addExp');
+  document.getElementById('lbl-exp-desc').textContent=t('desc');
+  document.getElementById('lbl-exp-amount').textContent=`${t('amount')} (${getCurrency()})`;
+  document.getElementById('lbl-exp-cat').textContent=t('cat');
+  document.getElementById('lbl-exp-date').textContent=t('date');
+  document.getElementById('exp-submit-text').textContent=t('add');
+  document.getElementById('lbl-by-cat').textContent=t('byCat');
+  document.getElementById('lbl-exp-list').textContent=t('list');
+  document.getElementById('lbl-total-exp').textContent=t('totalExp');
+  ['th-date','th-date2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=t('date');});
+  ['th-desc','th-desc2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=t('desc');});
+  ['th-cat','th-cat2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=t('cat');});
+  ['th-amount','th-amount2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=t('amount');});
+  const exps=data.filter(e=>e.type==='expense'&&e.date&&e.date.startsWith(ms));
+  const total=exps.reduce((s,e)=>s+(e.amount||0),0);
+  document.getElementById('exp-total').textContent=`${total.toFixed(2)} ${getCurrency()}`;
+  const cats=['Alimentation','Transport','Logement','Santé','Loisirs','Shopping','Éducation','Autres'];
+  document.getElementById('exp-cat-bars').innerHTML=cats.map(cat=>{
+    const amt=exps.filter(e=>e.category===cat).reduce((s,e)=>s+(e.amount||0),0);
+    const pct=total>0?(amt/total*100):0;
+    return `<div class="bar-row"><div class="bar-label"><span>${cat}</span><span>${amt.toFixed(2)} ${getCurrency()}</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:${pct.toFixed(1)}%;background:var(--accent)"></div></div></div>`;
+  }).join('');
+  const tbody=document.getElementById('exp-table');
+  tbody.innerHTML=exps.length===0?`<tr><td colspan="5" style="text-align:center;opacity:0.5;padding:20px">${lang==='fr'?'Aucune dépense':'No expenses'}</td></tr>`
+    :exps.sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`<tr>
+    <td>${new Date(e.date+'T00:00:00').toLocaleDateString(lang==='fr'?'fr-FR':'en-CA',{day:'2-digit',month:'2-digit'})}</td>
+    <td>${e.title}</td><td>${e.category}</td>
+    <td style="font-weight:700;color:var(--red)">${e.amount.toFixed(2)} ${getCurrency()}</td>
+    <td><button class="btn-delete" onclick="deleteItem('${e.id}','expenses')">🗑️</button></td></tr>`).join('');
+  const today=new Date();
+  if(financeDate.getFullYear()===today.getFullYear()&&financeDate.getMonth()===today.getMonth()){
+    document.getElementById('exp-date').value=dateStr(today);
+  }
+}
+
+function renderIncome(){
+  const ms=getMonthStr(financeDate);
+  const label=`${T[lang].months[financeDate.getMonth()]} ${financeDate.getFullYear()}`;
+  document.getElementById('inc-title').textContent=`💵 ${t('income')} — ${label}`;
+  document.getElementById('add-inc-label').textContent=t('addInc');
+  document.getElementById('lbl-inc-desc').textContent=t('desc');
+  document.getElementById('lbl-inc-amount').textContent=`${t('amount')} (${getCurrency()})`;
+  document.getElementById('lbl-inc-cat').textContent=t('cat');
+  document.getElementById('lbl-inc-date').textContent=t('date');
+  document.getElementById('inc-submit-text').textContent=t('add');
+  document.getElementById('lbl-inc-by-cat').textContent=t('byCat');
+  document.getElementById('lbl-inc-list').textContent=t('list');
+  document.getElementById('lbl-total-inc').textContent=t('totalInc');
+  const incs=data.filter(e=>e.type==='income'&&e.date&&e.date.startsWith(ms));
+  const total=incs.reduce((s,e)=>s+(e.amount||0),0);
+  document.getElementById('inc-total').textContent=`${total.toFixed(2)} ${getCurrency()}`;
+  const cats=['Salaire','Freelance','Investissements','Loyer reçu','Vente','Bonus','Autres'];
+  document.getElementById('inc-cat-bars').innerHTML=cats.map(cat=>{
+    const amt=incs.filter(e=>e.category===cat).reduce((s,e)=>s+(e.amount||0),0);
+    const pct=total>0?(amt/total*100):0;
+    return `<div class="bar-row"><div class="bar-label"><span>${cat}</span><span>${amt.toFixed(2)} ${getCurrency()}</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:${pct.toFixed(1)}%;background:var(--green)"></div></div></div>`;
+  }).join('');
+  const tbody=document.getElementById('inc-table');
+  tbody.innerHTML=incs.length===0?`<tr><td colspan="5" style="text-align:center;opacity:0.5;padding:20px">${lang==='fr'?'Aucun revenu':'No income'}</td></tr>`
+    :incs.sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`<tr>
+    <td>${new Date(e.date+'T00:00:00').toLocaleDateString(lang==='fr'?'fr-FR':'en-CA',{day:'2-digit',month:'2-digit'})}</td>
+    <td>${e.title}</td><td>${e.category}</td>
+    <td style="font-weight:700;color:var(--green)">${e.amount.toFixed(2)} ${getCurrency()}</td>
+    <td><button class="btn-delete" onclick="deleteItem('${e.id}','income')">🗑️</button></td></tr>`).join('');
+  const today=new Date();
+  if(financeDate.getFullYear()===today.getFullYear()&&financeDate.getMonth()===today.getMonth()){
+    document.getElementById('inc-date').value=dateStr(today);
+  }
+}
+
+function renderBudget(){
+  const ms=getMonthStr(financeDate);
+  const label=`${T[lang].months[financeDate.getMonth()]} ${financeDate.getFullYear()}`;
+  document.getElementById('budget-title').textContent=`📊 ${t('budget')} — ${label}`;
+  document.getElementById('lbl-budget-chart').textContent=t('byCat');
+  document.getElementById('lbl-budget-tips').textContent=`💡 ${lang==='fr'?'Conseils':'Tips'}`;
+  const exps=data.filter(e=>e.type==='expense'&&e.date&&e.date.startsWith(ms));
+  const incs=data.filter(e=>e.type==='income'&&e.date&&e.date.startsWith(ms));
+  const totalExp=exps.reduce((s,e)=>s+(e.amount||0),0);
+  const totalInc=incs.reduce((s,e)=>s+(e.amount||0),0);
+  const bal=totalInc-totalExp;
+  document.getElementById('budget-stats').innerHTML=`
+    <div class="stat-card"><div class="label">${t('totalInc')}</div><div class="value" style="color:var(--green)">${totalInc.toFixed(2)} ${getCurrency()}</div></div>
+    <div class="stat-card"><div class="label">${t('totalExp')}</div><div class="value" style="color:var(--red)">${totalExp.toFixed(2)} ${getCurrency()}</div></div>
+    <div class="stat-card" style="background:${bal>=0?'rgba(16,185,129,0.15)':'rgba(220,38,38,0.15)'}">
+      <div class="label">${t('balance')}</div>
+      <div class="value" style="color:${bal>=0?'var(--green)':'var(--red)'}">${bal.toFixed(2)} ${getCurrency()}</div>
+    </div>`;
+  const pctExp=totalInc>0?Math.min(totalExp/totalInc*100,100):0;
+  const pctBal=totalInc>0?Math.max(bal/totalInc*100,0):0;
+  document.getElementById('budget-bars').innerHTML=`
+    <div class="bar-row"><div class="bar-label"><span>💵 ${t('totalInc')}</span><span>${totalInc.toFixed(2)} ${getCurrency()}</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--green)"></div></div></div>
+    <div class="bar-row"><div class="bar-label"><span>💰 ${t('totalExp')}</span><span>${totalExp.toFixed(2)} ${getCurrency()}</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:${pctExp.toFixed(1)}%;background:var(--red)"></div></div></div>
+    ${bal>=0?`<div class="bar-row"><div class="bar-label"><span>💎 ${t('economy')}</span><span>${bal.toFixed(2)} ${getCurrency()}</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:${pctBal.toFixed(1)}%;background:#3b82f6"></div></div></div>`:''}`;
+  const tipColor=bal>=0?'rgba(16,185,129,0.15)':'rgba(220,38,38,0.15)';
+  const tipIcon=bal>=0?'✅':'⚠️';
+  const tipMsg=bal>=0
+    ?(lang==='fr'?`Excellent ! Vous avez économisé ${bal.toFixed(2)} ${getCurrency()}.`:`Great! You saved ${bal.toFixed(2)} ${getCurrency()}.`)
+    :(lang==='fr'?`Vos dépenses dépassent vos revenus de ${Math.abs(bal).toFixed(2)} ${getCurrency()}.`:`Your expenses exceed your income by ${Math.abs(bal).toFixed(2)} ${getCurrency()}.`);
+  document.getElementById('budget-tips').innerHTML=`
+    <div style="background:${tipColor};border-radius:10px;padding:16px;margin-bottom:12px">
+      <div style="font-weight:700;margin-bottom:6px">${tipIcon} ${bal>=0?t('balanced'):t('over')}</div>
+      <p style="font-size:0.9rem;opacity:0.85">${tipMsg}</p>
+    </div>
+    <div class="guide-section">
+      <div style="font-weight:700;margin-bottom:4px">💎 ${lang==='fr'?'Règle 50/30/20':'50/30/20 Rule'}</div>
+      <p style="font-size:0.9rem;opacity:0.8">${lang==='fr'?'50% besoins, 30% loisirs, 20% épargne':'50% needs, 30% wants, 20% savings'}</p>
+    </div>`;
+}
+
+function renderProfile(){
+  document.getElementById('profile-title').textContent=t('profile');
+  const c=document.getElementById('profile-content');
+  const userP=data.find(e=>e.type==='profile'&&e.category==='user');
+  const partnerP=data.find(e=>e.type==='profile'&&e.category==='partner');
+  const children=data.filter(e=>e.type==='profile'&&e.category==='child');
+  const genderIcon=userP?.description==='Féminin'||userP?.description==='Female'?'👩':userP?.description?'👨':'🧑';
+  c.innerHTML=`
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:20px">
+    <div class="profile-block">
+      <h2 style="font-weight:700;font-size:1.2rem;margin-bottom:16px">${genderIcon} ${t('myInfo')}</h2>
+      ${userP?`
+        <p><strong>${t('gender')} :</strong> ${userP.description}</p>
+        <p><strong>${t('birthdate')} :</strong> ${userP.date?new Date(userP.date+'T00:00:00').toLocaleDateString(lang==='fr'?'fr-FR':'en-CA',{day:'numeric',month:'long',year:'numeric'}):'-'}</p>
+        ${userP.date?`<div class="age-badge">${calcAge(userP.date)} ${t('age')}</div>`:''}
+        <button class="btn-delete" style="margin-top:12px" onclick="deleteItem('${userP.id}','profile')">🗑️</button>
+      `:`<form onsubmit="addUserProfile(event)">
+        <div class="form-group"><label>${t('gender')}</label>
+          <select id="u-gender"><option value="${lang==='fr'?'Masculin':'Male'}">${t('male')}</option><option value="${lang==='fr'?'Féminin':'Female'}">${t('female')}</option><option value="${lang==='fr'?'Autre':'Other'}">${t('other')}</option></select></div>
+        <div class="form-group"><label>${t('birthdate')}</label><input type="date" id="u-birth"></div>
+        <button type="submit" class="btn-submit">${t('save')}</button>
+      </form>`}
+    </div>
+    <div class="profile-block">
+      <h2 style="font-weight:700;font-size:1.2rem;margin-bottom:16px">💑 ${t('partner')}</h2>
+      ${partnerP?`
+        <p><strong>${t('partnerName')} :</strong> ${partnerP.title}</p>
+        <p><strong>${t('birthdate')} :</strong> ${partnerP.date?new Date(partnerP.date+'T00:00:00').toLocaleDateString(lang==='fr'?'fr-FR':'en-CA',{day:'numeric',month:'long',year:'numeric'}):'-'}</p>
+        ${partnerP.date?`<div class="age-badge">${calcAge(partnerP.date)} ${t('age')}</div>`:''}
+        <button class="btn-delete" style="margin-top:12px" onclick="deleteItem('${partnerP.id}','profile')">🗑️</button>
+      `:`<form onsubmit="addPartnerProfile(event)">
+        <div class="form-group"><label>${t('partnerName')}</label><input type="text" id="p-name" required></div>
+        <div class="form-group"><label>${t('birthdate')}</label><input type="date" id="p-birth"></div>
+        <button type="submit" class="btn-submit">${t('save')}</button>
+      </form>`}
+    </div>
+  </div>
+  <div class="profile-block">
+    <h2 style="font-weight:700;font-size:1.2rem;margin-bottom:16px">👶 ${t('children')} (${children.length})</h2>
+    <form onsubmit="addChildProfile(event)" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;align-items:end">
+      <div class="form-group" style="margin:0"><label>${t('firstName')}</label><input type="text" id="ch-name" required></div>
+      <div class="form-group" style="margin:0"><label>${t('birthdate')}</label><input type="date" id="ch-birth"></div>
+      <button type="submit" class="btn-submit" style="margin-top:0">${t('addChild')}</button>
+    </form>
+    ${children.map(ch=>`<div class="list-item">
+      <div class="info"><h3>👶 ${ch.title}</h3>
+        <p>${ch.date?new Date(ch.date+'T00:00:00').toLocaleDateString(lang==='fr'?'fr-FR':'en-CA',{day:'numeric',month:'long',year:'numeric'}):''}</p>
+        ${ch.date?`<div class="age-badge" style="font-size:0.9rem;padding:4px 14px">${calcAge(ch.date)} ${t('age')}</div>`:''}
+      </div>
+      <button class="btn-delete" onclick="deleteItem('${ch.id}','profile')">🗑️</button>
+    </div>`).join('')}
+  </div>
+  <div class="profile-block" style="margin-top:20px">
+    <h2 style="font-weight:700;font-size:1.2rem;margin-bottom:16px">🎂 ${t('birthday')}</h2>
+    <form onsubmit="addBirthday(event)" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;align-items:end">
+      <div class="form-group" style="margin:0"><label>${t('bdayName')}</label><input type="text" id="bday-name" required></div>
+      <div class="form-group" style="margin:0"><label>${t('birthdate')}</label><input type="date" id="bday-date"></div>
+      <div class="form-group" style="margin:0"><label>${t('bdayRelation')}</label>
+        <select id="bday-relation">
+          <option value="famille">👨‍👩‍👧 ${t('relFamille')}</option>
+          <option value="ami">👥 ${t('relAmi')}</option>
+          <option value="collegue">💼 ${t('relCollegue')}</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-submit" style="margin:0">${t('addBirthday')}</button>
+    </form>
+    ${(()=>{
+      const bdays=data.filter(e=>e.type==='birthday');
+      if(bdays.length===0) return `<p style="opacity:0.5;text-align:center;padding:16px">${t('noBirthdays')}</p>`;
+      const relClass={'famille':'rel-famille','ami':'rel-ami','collegue':'rel-collegue'};
+      const relLabel={'famille':t('relFamille'),'ami':t('relAmi'),'collegue':t('relCollegue')};
+      return bdays.map(b=>{
+        const ageStr=b.date?` — ${calcAge(b.date)} ${t('age')}`:'';
+        const dateStr2=b.date?new Date(b.date+'T00:00:00').toLocaleDateString(lang==='fr'?'fr-FR':'en-CA',{day:'numeric',month:'long'}):'';
+        const autoLabel=b.autoGenerated?(lang==='fr'?'<span style="font-size:0.72rem;opacity:0.6;margin-left:6px">🔗 Profil</span>':'<span style="font-size:0.72rem;opacity:0.6;margin-left:6px">🔗 Profile</span>'):'';
+        const deleteBtn=b.autoGenerated
+          ?`<span style="font-size:0.75rem;opacity:0.5;padding:6px 10px">${lang==='fr'?'Auto':'Auto'}</span>`
+          :`<button class="btn-delete" onclick="deleteItem('${b.id}','profile')">🗑️</button>`;
+        return `<div class="list-item">
+          <div class="info">
+            <h3>🎂 ${b.title}${ageStr}${autoLabel}</h3>
+            ${b.date?`<p>📅 ${dateStr2}</p>`:''}
+            <span class="rel-badge ${relClass[b.relation]||'rel-famille'}">${relLabel[b.relation]||b.relation}</span>
+          </div>
+          ${deleteBtn}
+        </div>`;
+      }).join('');
+    })()}
+  </div>`;
+}
+
+function renderSettings(){
+  document.getElementById('settings-title').textContent=t('settings');
+  document.getElementById('lbl-guide').textContent=t('guide');
+  document.getElementById('lbl-name-setting').textContent=t('ownerName');
+  document.getElementById('lbl-currency').textContent=t('currency');
+  document.getElementById('lbl-cover-bg').textContent=t('coverBg');
+  document.getElementById('lbl-colors').textContent=t('colors');
+  document.getElementById('lbl-backup').textContent=lang==='fr'?'💾 Sauvegarde & Restauration':'💾 Backup & Restore';
+  // Country selector
+  const countryEl=document.getElementById('country-select');
+  if(countryEl){
+    countryEl.value=cfg.country||'canada';
+    document.getElementById('lbl-country-setting').textContent=lang==='fr'?'🌍 Pays / Région':'🌍 Country / Region';
+    const descMap={
+      canada:lang==='fr'?'Fêtes canadiennes + Québec (Pâques, Action de Grâce, etc.)':'Canadian holidays + Quebec (Easter, Thanksgiving, etc.)',
+      usa:lang==='fr'?'Fêtes américaines (Thanksgiving, Memorial Day, etc.)':'US holidays (Thanksgiving, Memorial Day, etc.)',
+      international:lang==='fr'?'Fêtes internationales générales':'General international holidays'
+    };
+    document.getElementById('lbl-country-desc').textContent=descMap[cfg.country||'canada']||'';
+  }
+  document.getElementById('lbl-backup-desc').textContent=lang==='fr'
+    ?'Exportez vos données pour les sauvegarder ou les transférer. Si vous nettoyez votre navigateur, importez ce fichier pour tout restaurer.'
+    :'Export your data to save it or transfer it to another device. If you clear your browser, import this file to restore everything.';
+  document.getElementById('lbl-export').textContent=lang==='fr'?'📥 Exporter mes données':'📥 Export my data';
+  document.getElementById('lbl-import').textContent=lang==='fr'?'📤 Restaurer mes données':'📤 Restore my data';
+  document.getElementById('lbl-qr').textContent=lang==='fr'?'📱 Transférer vers un autre appareil (QR Code)':'📱 Transfer to another device (QR Code)';
+  document.getElementById('lbl-qr-import-title').textContent=lang==='fr'?'📷 Importer depuis un QR Code':'📷 Import from QR Code';
+  document.getElementById('lbl-scan-qr').textContent=lang==='fr'?'📸 Charger une capture du QR Code':'📸 Upload a QR Code screenshot';
+  document.getElementById('lbl-qr-tip').textContent=lang==='fr'?'Faites une capture d\'écran du QR Code et chargez-la ici':'Take a screenshot of the QR Code and upload it here';
+  document.getElementById('btn-close-qr').textContent=lang==='fr'?'✕ Fermer':'✕ Close';
+  document.getElementById('qr-modal-title').textContent=lang==='fr'?'📱 Scanner avec votre autre appareil':'📱 Scan with your other device';
+  document.getElementById('qr-modal-desc').textContent=lang==='fr'?'Ouvrez Planivo sur votre téléphone → Paramètres → Importer QR':'Open Planivo on your phone → Settings → Import QR';
+  document.getElementById('save-name-text').textContent=t('confirm');
+  document.getElementById('save-currency-text').textContent=t('confirm');
+  document.getElementById('btn-reset-colors').textContent=`🔄 ${t('reset')}`;
+  document.getElementById('lbl-col-bg').textContent=lang==='fr'?'Fond':'Background';
+  document.getElementById('lbl-col-surface').textContent=lang==='fr'?'Cartes':'Cards';
+  document.getElementById('lbl-col-text').textContent=lang==='fr'?'Texte':'Text';
+  document.getElementById('lbl-col-primary').textContent=lang==='fr'?'Principal':'Primary';
+  document.getElementById('lbl-col-accent').textContent='Accent';
+  const guide=document.getElementById('guide-content');
+  guide.innerHTML=t('guideText').map(g=>`<div class="guide-section"><h3 style="font-weight:700;margin-bottom:6px">${g.icon} ${g.title}</h3><p style="font-size:0.9rem;opacity:0.8">${g.text}</p></div>`).join('');
+  const bgGrid=document.getElementById('bg-grid');
+  bgGrid.innerHTML=Object.keys(BACKGROUNDS).map(key=>`
+    <div onclick="selectBg('${key}')" style="cursor:pointer;border-radius:10px;overflow:hidden;border:3px solid ${cfg.coverBg===key?'var(--accent)':'transparent'};transition:border-color 0.2s">
+      <div style="height:60px;background-image:${BACKGROUNDS[key]};background-size:cover;background-position:center"></div>
+      <div style="background:var(--surface);padding:6px;text-align:center;font-size:0.8rem;font-weight:600">${T[lang].bgLabels[key]}</div>
+    </div>`).join('');
+}
+
+// ── ACTIONS ────────────────────────────────────────────────────────────────
+function changeYear(d){currentDate.setFullYear(currentDate.getFullYear()+d);renderYear();}
+function changeMonth(d){currentDate.setMonth(currentDate.getMonth()+d);renderMonth();}
+function changeDay(d){selectedDate.setDate(selectedDate.getDate()+d);renderDay();}
+function changeFinanceMonth(d){financeDate.setMonth(financeDate.getMonth()+d);renderView(currentView);}
+
+function addEvent(){
+  const title=document.getElementById('ev-title').value.trim();
+  if(!title){showToast('⚠️');return;}
+  const time=document.getElementById('ev-time').value;
+  const desc=document.getElementById('ev-desc').value.trim();
+  data.push({id:Date.now().toString(),type:'event',date:dateStr(selectedDate),title,time,description:desc,completed:false});
+  saveData(data);
+  document.getElementById('ev-title').value='';
+  document.getElementById('ev-time').value='';
+  document.getElementById('ev-desc').value='';
+  showToast(t('eventAdded'));renderDay();
+}
+
+function addTask(){
+  const title=document.getElementById('task-title').value.trim();
+  if(!title){showToast('⚠️');return;}
+  const date=document.getElementById('task-date').value;
+  data.push({id:Date.now().toString(),type:'task',date,title,completed:false});
+  saveData(data);
+  document.getElementById('task-title').value='';
+  document.getElementById('task-date').value='';
+  showToast(t('taskAdded'));renderTasks();
+}
+
+function toggleTask(id,completed){
+  const item=data.find(e=>e.id===id);
+  if(item){item.completed=completed;saveData(data);renderTasks();}
+}
+
+function addExpense(){
+  const title=document.getElementById('exp-desc').value.trim();
+  const amount=parseFloat(document.getElementById('exp-amount').value);
+  const category=document.getElementById('exp-cat').value;
+  const date=document.getElementById('exp-date').value||dateStr(financeDate);
+  if(!title||isNaN(amount)||amount<=0){showToast('⚠️');return;}
+  data.push({id:Date.now().toString(),type:'expense',date,title,amount,category});
+  saveData(data);
+  document.getElementById('exp-desc').value='';
+  document.getElementById('exp-amount').value='';
+  showToast(t('expAdded'));renderExpenses();
+}
+
+function addIncome(){
+  const title=document.getElementById('inc-desc').value.trim();
+  const amount=parseFloat(document.getElementById('inc-amount').value);
+  const category=document.getElementById('inc-cat').value;
+  const date=document.getElementById('inc-date').value||dateStr(financeDate);
+  if(!title||isNaN(amount)||amount<=0){showToast('⚠️');return;}
+  data.push({id:Date.now().toString(),type:'income',date,title,amount,category});
+  saveData(data);
+  document.getElementById('inc-desc').value='';
+  document.getElementById('inc-amount').value='';
+  showToast(t('incAdded'));renderIncome();
+}
+
+function addUserProfile(e){
+  e.preventDefault();
+  const gender=document.getElementById('u-gender').value;
+  const birth=document.getElementById('u-birth').value;
+  data.push({id:Date.now().toString(),type:'profile',category:'user',title:'',description:gender,date:birth});
+  saveData(data);showToast(t('saved'));renderProfile();
+}
+
+function addPartnerProfile(e){
+  e.preventDefault();
+  const name=document.getElementById('p-name').value.trim();
+  const birth=document.getElementById('p-birth').value;
+  const id=Date.now().toString();
+  data.push({id,type:'profile',category:'partner',title:name,description:'',date:birth});
+  if(name&&birth) syncProfileBirthday(id,name,birth,'famille');
+  saveData(data);showToast(t('saved'));renderProfile();
+}
+
+function addChildProfile(e){
+  e.preventDefault();
+  const name=document.getElementById('ch-name').value.trim();
+  const birth=document.getElementById('ch-birth').value;
+  if(!name)return;
+  const id=Date.now().toString();
+  data.push({id,type:'profile',category:'child',title:name,description:'',date:birth});
+  if(birth) syncProfileBirthday(id,name,birth,'famille');
+  saveData(data);showToast(t('saved'));renderProfile();
+}
+
+function deleteItem(id,view){
+  if(!confirm(lang==='fr'?'Supprimer cet élément ?':'Delete this item?'))return;
+  // Si c'est un profil, supprimer aussi l'anniversaire auto-généré associé
+  data=data.filter(e=>e.id!==id && e.autoSource!==id);
+  saveData(data);showToast(t('deleted'));renderView(view);
+}
+
+function selectBg(key){
+  cfg.coverBg=key;saveConfig(cfg);
+  document.getElementById('cover').style.backgroundImage=BACKGROUNDS[key];
+  renderSettings();
+}
+
+function toggleLang(){
+  lang=lang==='fr'?'en':'fr';
+  document.getElementById('lang-switch').textContent=lang==='fr'?'EN':'FR';
+  cfg.lang=lang;saveConfig(cfg);
+  renderView(currentView);
+}
+
+function saveOwnerFromCover(val){
+  if(!val.trim()) return;
+  cfg.ownerName=val.trim();
+  saveConfig(cfg);
+  const si=document.getElementById('owner-input');
+  if(si) si.value=val.trim();
+  renderCover();
+}
+
+
+// ── EXPORT / IMPORT ────────────────────────────────────────────────────────
+function exportData(){
+  const payload = {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    app: 'Planivo — Smart Planner',
+    license: 'Personal use only. Redistribution prohibited. © 2026 Planivo',
+    config: cfg,
+    data: data
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = 'agenda-sauvegarde-' + dateStr + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  const status = document.getElementById('backup-status');
+  if(status){
+    status.style.color = 'var(--green)';
+    status.textContent = lang==='fr'
+      ? '✅ Sauvegarde téléchargée avec succès !'
+      : '✅ Backup downloaded successfully!';
+    setTimeout(()=>{ status.textContent=''; }, 4000);
+  }
+  showToast(lang==='fr' ? '📥 Données exportées !' : '📥 Data exported!');
+}
+
+function importData(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      const payload = JSON.parse(e.target.result);
+      if(!payload.data || !Array.isArray(payload.data)){
+        throw new Error('Format invalide');
+      }
+      // Confirmer avant d'écraser
+      const msg = lang==='fr'
+        ? 'Restaurer les données ? Vos données actuelles seront remplacées.'
+        : 'Restore data? Your current data will be replaced.';
+      if(!confirm(msg)) return;
+
+      data = payload.data;
+      saveData(data);
+
+      if(payload.config){
+        cfg = Object.assign({}, defaultConfig, payload.config);
+        saveConfig(cfg);
+        applyConfig();
+      }
+
+      const status = document.getElementById('backup-status');
+      if(status){
+        status.style.color = 'var(--green)';
+        const count = data.length;
+        status.textContent = lang==='fr'
+          ? '✅ ' + count + ' entrées restaurées avec succès !'
+          : '✅ ' + count + ' entries restored successfully!';
+        setTimeout(()=>{ status.textContent=''; }, 5000);
+      }
+      showToast(lang==='fr' ? '📤 Données restaurées !' : '📤 Data restored!');
+      renderView(currentView);
+    } catch(err) {
+      const status = document.getElementById('backup-status');
+      if(status){
+        status.style.color = 'var(--red)';
+        status.textContent = lang==='fr'
+          ? '❌ Fichier invalide. Utilisez un fichier exporté depuis cet agenda.'
+          : '❌ Invalid file. Please use a backup file from this app.';
+      }
+      showToast(lang==='fr' ? '❌ Fichier invalide' : '❌ Invalid file');
+    }
+    // Reset file input pour permettre réimport du même fichier
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+
+// ── QR CODE SYNC ───────────────────────────────────────────────────────────
+function loadQRLibs(callback){
+  if(typeof QRCode !== 'undefined' && typeof LZString !== 'undefined'){
+    callback(); return;
+  }
+  const s1 = document.createElement('script');
+  s1.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
+  s1.onload = function(){
+    const s2 = document.createElement('script');
+    s2.src = 'https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js';
+    s2.onload = callback;
+    s2.onerror = callback;
+    document.head.appendChild(s2);
+  };
+  s1.onerror = callback;
+  document.head.appendChild(s1);
+}
+
+function showQRSync(){
+  loadQRLibs(function(){ _showQRSync(); });
+}
+
+function _showQRSync(){
+  const modal = document.getElementById('qr-modal');
+  const qrDiv = document.getElementById('qr-code');
+  const warning = document.getElementById('qr-size-warning');
+  const steps = document.getElementById('qr-steps');
+
+  modal.style.display = 'block';
+  qrDiv.innerHTML = '';
+
+  const payload = {
+    v: '1.0',
+    d: data,
+    c: {
+      ownerName: cfg.ownerName,
+      currency: cfg.currency,
+      coverBg: cfg.coverBg,
+      bg: cfg.bg,
+      surface: cfg.surface,
+      text: cfg.text,
+      primary: cfg.primary,
+      accent: cfg.accent,
+      lang: cfg.lang
+    }
+  };
+
+  let jsonStr = JSON.stringify(payload);
+
+  // Compresser avec LZString si disponible
+  let compressed = jsonStr;
+  let isCompressed = false;
+  if(typeof LZString !== 'undefined'){
+    compressed = LZString.compressToEncodedURIComponent(jsonStr);
+    isCompressed = true;
+  }
+
+  const finalData = (isCompressed ? 'PLV:' : 'PLN:') + compressed;
+  const byteSize = new Blob([finalData]).size;
+
+  // QR max fiable ~2500 bytes
+  if(byteSize > 2500){
+    warning.style.display = 'block';
+    const excess = Math.round(byteSize / 1024 * 10) / 10;
+    warning.textContent = lang === 'fr'
+      ? '⚠️ Vos données (' + excess + ' KB) sont volumineuses. Le QR peut être difficile à scanner. Utilisez plutôt l\'export JSON pour un transfert complet.'
+      : '⚠️ Your data (' + excess + ' KB) is large. The QR may be hard to scan. Use JSON export for a complete transfer.';
+  } else {
+    warning.style.display = 'none';
+  }
+
+  try {
+    new QRCode(qrDiv, {
+      text: finalData,
+      width: 220,
+      height: 220,
+      colorDark: '#000000',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch(e) {
+    qrDiv.innerHTML = '<p style="color:var(--red);padding:20px">' +
+      (lang==='fr' ? '❌ Données trop volumineuses pour un QR. Utilisez l\'export JSON.' : '❌ Data too large for QR. Use JSON export.') +
+      '</p>';
+  }
+
+  steps.textContent = lang === 'fr'
+    ? '1. Ouvrez Planivo sur votre autre appareil\n2. Param\u00e8tres \u2192 Importer QR\n3. Chargez une capture du QR'
+    : '1. Open Planivo on your other device\n2. Settings \u2192 Import QR\n3. Upload a screenshot of the QR';
+  steps.style.whiteSpace = 'pre-line';
+
+  modal.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function closeQR(){
+  document.getElementById('qr-modal').style.display = 'none';
+}
+
+function importFromQRImage(event){
+  const file = event.target.files[0];
+  if(!file) return;
+
+  // Utiliser jsQR via canvas pour décoder
+  const img = new Image();
+  img.onload = function(){
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // Charger jsQR dynamiquement
+    if(typeof jsQR === 'undefined'){
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+      script.onload = () => decodeQRFromImageData(imageData);
+      document.head.appendChild(script);
+    } else {
+      decodeQRFromImageData(imageData);
+    }
+  };
+  img.src = URL.createObjectURL(file);
+  event.target.value = '';
+}
+
+function decodeQRFromImageData(imageData){
+  try {
+    const result = jsQR(imageData.data, imageData.width, imageData.height);
+    if(!result){
+      showToast(lang==='fr' ? '❌ QR Code non détecté' : '❌ QR Code not detected');
+      return;
+    }
+
+    const raw = result.data;
+    let jsonStr = '';
+
+    if(raw.startsWith('PLV:')){
+      // Compressé LZString
+      jsonStr = LZString.decompressFromEncodedURIComponent(raw.substring(4));
+    } else if(raw.startsWith('PLN:')){
+      // Non compressé
+      jsonStr = raw.substring(4);
+    } else {
+      showToast(lang==='fr' ? '❌ QR non reconnu (pas un QR Planivo)' : '❌ QR not recognized');
+      return;
+    }
+
+    const payload = JSON.parse(jsonStr);
+    if(!payload.d || !Array.isArray(payload.d)) throw new Error('Format invalide');
+
+    const msg = lang==='fr'
+      ? 'Restaurer ' + payload.d.length + ' entrées depuis le QR Code ? Vos données actuelles seront remplacées.'
+      : 'Restore ' + payload.d.length + ' entries from QR Code? Your current data will be replaced.';
+    if(!confirm(msg)) return;
+
+    data = payload.d;
+    saveData(data);
+
+    if(payload.c){
+      cfg = Object.assign({}, defaultConfig, payload.c);
+      saveConfig(cfg);
+      applyConfig();
+    }
+
+    showToast(lang==='fr'
+      ? '✅ ' + data.length + ' entrées restaurées !'
+      : '✅ ' + data.length + ' entries restored!');
+    renderView(currentView);
+
+  } catch(e) {
+    showToast(lang==='fr' ? '❌ Erreur de lecture du QR' : '❌ QR read error');
+  }
+}
+
+
+// ── POSTPONE TASK ──────────────────────────────────────────────────────────
+function postponeTask(id){
+  const row=document.getElementById('pp-row-'+id);
+  if(row) row.classList.toggle('open');
+}
+function cancelPostpone(id){
+  const row=document.getElementById('pp-row-'+id);
+  if(row) row.classList.remove('open');
+}
+function confirmPostpone(id){
+  const input=document.getElementById('pp-date-'+id);
+  if(!input||!input.value){showToast('⚠️');return;}
+  const item=data.find(e=>e.id===id);
+  if(item){item.date=input.value;saveData(data);renderTasks();}
+  showToast(lang==='fr'?'📅 Tâche reportée !':'📅 Task postponed!');
+}
+
+// ── ADD BIRTHDAY ───────────────────────────────────────────────────────────
+function addBirthday(e){
+  e.preventDefault();
+  const name=document.getElementById('bday-name').value.trim();
+  const date=document.getElementById('bday-date').value;
+  const relation=document.getElementById('bday-relation').value;
+  if(!name){showToast('⚠️');return;}
+  data.push({id:Date.now().toString(),type:'birthday',title:name,date,relation});
+  saveData(data);
+  document.getElementById('bday-name').value='';
+  document.getElementById('bday-date').value='';
+  showToast(lang==='fr'?'🎂 Anniversaire ajouté !':'🎂 Birthday added!');
+  renderProfile();
+}
+
+// ── SAVE ALERT ADVANCE ─────────────────────────────────────────────────────
+function saveAlertAdvance(val){
+  cfg.alertAdvance=parseInt(val)||1;
+  cfg.alertDismissedDate='';
+  saveConfig(cfg);
+  showToast(lang==='fr'?'✓ Rappels mis à jour':'✓ Reminders updated');
+}
+
+// ── CHECK & SHOW ALERTS ────────────────────────────────────────────────────
+function checkAlerts(){
+  const todayStr=dateStr(new Date());
+  if(cfg.alertDismissedDate===todayStr) return;
+  const advance=parseInt(cfg.alertAdvance)||1;
+  const alerts=[];
+
+  // Helper: date in advance window?
+  function inWindow(ds){
+    if(!ds) return false;
+    for(let i=0;i<=advance;i++){
+      const d=new Date(); d.setDate(d.getDate()+i);
+      if(dateStr(d)===ds) return {match:true,days:i};
+    }
+    return false;
+  }
+
+  // Events upcoming
+  const events=data.filter(e=>e.type==='event');
+  events.forEach(ev=>{
+    const w=inWindow(ev.date);
+    if(w){
+      const when=w.days===0?(lang==='fr'?'Aujourd\'hui':'Today'):w.days===1?(lang==='fr'?'Demain':'Tomorrow'):(lang==='fr'?`Dans ${w.days} jours`:`In ${w.days} days`);
+      alerts.push({icon:'📅',text:`<strong>${when}</strong> — ${ev.title}${ev.time?' à '+ev.time:''}`});
+    }
+  });
+
+  // Tasks overdue or due soon
+  const tasks=data.filter(e=>e.type==='task'&&!e.completed&&e.date);
+  tasks.forEach(tk=>{
+    if(tk.date<todayStr){
+      alerts.push({icon:'⚠️',text:`<strong>${t('overdue')}</strong> — ${tk.title}`});
+    } else {
+      const w=inWindow(tk.date);
+      if(w&&w.days>0){
+        const when=w.days===1?(lang==='fr'?'Demain':'Tomorrow'):(lang==='fr'?`Dans ${w.days} jours`:`In ${w.days} days`);
+        alerts.push({icon:'✅',text:`<strong>${when}</strong> — ${tk.title}`});
+      }
+    }
+  });
+
+  // Birthdays
+  const bdays=data.filter(e=>e.type==='birthday'&&e.date);
+  bdays.forEach(b=>{
+    for(let i=0;i<=advance;i++){
+      const d=new Date(); d.setDate(d.getDate()+i);
+      const mmdd=`-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      if(b.date.endsWith(mmdd)){
+        const age=calcAge(b.date);
+        const when=i===0?(lang==='fr'?'Aujourd\'hui':'Today'):i===1?(lang==='fr'?'Demain':'Tomorrow'):(lang==='fr'?`Dans ${i} jours`:`In ${i} days`);
+        alerts.push({icon:'🎂',text:`<strong>${when}</strong> — ${b.title} (${age} ${t('age')})`});
+        break;
+      }
+    }
+  });
+
+  if(alerts.length===0) return;
+
+  // Show modal
+  const modal=document.getElementById('alert-modal');
+  const list=document.getElementById('alert-list');
+  const hdr=document.getElementById('alert-modal-hdr');
+  const btn=document.getElementById('btn-alert-dismiss');
+  if(!modal) return;
+  hdr.textContent=t('alertTitle');
+  btn.textContent=t('alertDismiss');
+  list.innerHTML=alerts.map(a=>`<div class="alert-item"><span class="alert-icon">${a.icon}</span><span style="font-size:0.95rem;line-height:1.5">${a.text}</span></div>`).join('');
+  modal.classList.add('show');
+}
+
+function dismissAlerts(){
+  const modal=document.getElementById('alert-modal');
+  if(modal) modal.classList.remove('show');
+  cfg.alertDismissedDate=dateStr(new Date());
+  saveConfig(cfg);
+}
+
+
+// ── SYNC PROFILE → BIRTHDAY ────────────────────────────────────────────────
+function syncProfileBirthday(profileId, name, date, relation){
+  // Remove any existing auto birthday for this profile
+  data = data.filter(e => !(e.type==='birthday' && e.autoSource===profileId));
+  // Add fresh auto birthday
+  data.push({
+    id: 'autobday_' + profileId,
+    type: 'birthday',
+    title: name,
+    date: date,
+    relation: relation,
+    autoGenerated: true,
+    autoSource: profileId
+  });
+}
+
+// Sync existing profiles that don't yet have auto-birthday entries (migration)
+function migrateProfileBirthdays(){
+  const partner=data.find(e=>e.type==='profile'&&e.category==='partner');
+  const children=data.filter(e=>e.type==='profile'&&e.category==='child');
+  let changed=false;
+  [partner,...children].filter(Boolean).forEach(p=>{
+    if(!p.title||!p.date) return;
+    const exists=data.find(e=>e.type==='birthday'&&e.autoSource===p.id);
+    if(!exists){
+      data.push({id:'autobday_'+p.id,type:'birthday',title:p.title,date:p.date,relation:'famille',autoGenerated:true,autoSource:p.id});
+      changed=true;
+    }
+  });
+  if(changed) saveData(data);
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+lang=cfg.lang||'fr';
+document.getElementById('lang-switch').textContent=lang==='fr'?'EN':'FR';
+applyConfig();
+document.getElementById('cover').style.display='flex';
+renderCover();
+migrateProfileBirthdays();
+checkAlerts();
+if('serviceWorker' in navigator){
+  // Désinscrire tous les anciens service workers
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(r=>r.unregister());
+  });
+  // Réenregistrer proprement
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(reg=>{ reg.update(); console.log('SW OK'); })
+      .catch(e=>console.log('SW skip'));
+  });
+}
+
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredPrompt=e;
+  const btn=document.createElement('button');
+  btn.id='install-btn';
+  btn.style.cssText='position:fixed;bottom:80px;right:16px;z-index:1000;background:var(--accent);color:#fff;border:none;padding:12px 20px;border-radius:24px;font-weight:700;font-size:0.95rem;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.3)';
+  btn.textContent="📲 Installer l'app";
+  btn.onclick=()=>{deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{btn.remove();deferredPrompt=null;});};
+  document.body.appendChild(btn);
+});
+
+</script>
+</body>
+</html>
