@@ -74,7 +74,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .form-group textarea{resize:vertical;min-height:80px}
 .btn-submit{width:100%;padding:14px;border-radius:12px;background:var(--accent);color:#fff;font-weight:700;font-size:1rem;display:flex;align-items:center;justify-content:center;gap:10px}
 .btn-delete{background:var(--red);color:#fff;padding:8px 16px;border-radius:8px;font-weight:700}
-.btn-back{background:var(--surface);color:var(--text);padding:10px 20px;border-radius:8px;font-weight:600;border:2px solid var(--primary);margin-bottom:24px}
+.btn-back{display:none!important}
 .btn-nav{background:var(--primary);color:#fff;padding:10px 20px;border-radius:8px;font-weight:700}
 .list-card{background:var(--surface);border-radius:16px;padding:24px;max-width:900px;margin:0 auto}
 .list-item{background:var(--bg);border-radius:10px;padding:16px;margin-bottom:12px;border-left:6px solid var(--accent);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
@@ -136,7 +136,7 @@ th{font-weight:700;opacity:0.8}
 .nav-section{padding:8px 20px 4px;font-size:0.75rem;opacity:0.5;text-transform:uppercase;letter-spacing:0.08em;font-weight:700}
 /* ── INSTALL BUTTON ── */
 #install-banner{display:flex;align-items:center;gap:10px;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:2000;background:#3282b8;color:#fff;border:none;padding:14px 28px;border-radius:28px;font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,0.4);white-space:nowrap;font-family:inherit;animation:fadeIn 0.4s ease}
-#install-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;padding:16px}
+#install-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9998;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
 #install-modal.show{display:flex}
 .install-box{background:var(--surface);border-radius:20px;padding:24px;max-width:480px;width:100%;border:2px solid var(--accent)}
 .install-step{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.07)}
@@ -661,14 +661,14 @@ const T = {
 };
 
 const BACKGROUNDS = {
-  plage:'url("https://picsum.photos/seed/beach-sunset/1200/800")',
-  hiver:'url("https://picsum.photos/seed/snow-winter/1200/800")',
-  ville:'url("https://picsum.photos/seed/city-night/1200/800")',
-  montagne:'url("https://picsum.photos/seed/mountain-peak/1200/800")',
-  foret:'url("https://picsum.photos/seed/forest-green/1200/800")',
-  coeur:'url("https://picsum.photos/seed/love-roses/1200/800")',
-  gateau:'url("https://picsum.photos/seed/birthday-cake/1200/800")',
-  robot:'url("https://picsum.photos/seed/tech-dark/1200/800")'
+  plage:'linear-gradient(175deg,#1a7abf 0%,#3a9fd4 18%,#72c8f0 30%,#f4c97a 48%,#f0a830 58%,#e8952a 66%,#c87820 74%,#d4944a 84%,#b8864a 92%,#a07040 100%)',
+  hiver:'linear-gradient(180deg,#5baad4 0%,#8ac4e8 15%,#b4d9f2 28%,#d8eeff 42%,#f8fdff 58%,#ffffff 68%,#f0f8ff 76%,#e0eef8 86%,#b8d4ea 100%)',
+  ville:'linear-gradient(180deg,#020614 0%,#060c28 20%,#0e1840 40%,#1a1040 60%,#0a0820 80%,#030210 100%)',
+  montagne:'linear-gradient(180deg,#1a3a5c 0%,#3a6898 25%,#5a8ab8 45%,#607868 58%,#384830 68%,#c8cac8 80%,#f0f4f8 100%)',
+  foret:'linear-gradient(180deg,#0a1a06 0%,#1a3c10 20%,#2a7020 45%,#1e5018 65%,#0e2808 85%,#081404 100%)',
+  coeur:'linear-gradient(160deg,#1a0018 0%,#9a0060 35%,#ee2080 58%,#ff6060 78%,#ffa030 100%)',
+  gateau:'linear-gradient(145deg,#1a0040 0%,#8000c0 30%,#d040b0 55%,#f080a0 78%,#ffb0d0 100%)',
+  robot:'linear-gradient(160deg,#010208 0%,#050c20 25%,#0a1a40 50%,#102858 72%,#0f4c75 100%)'
 };
 
 // ── UTILS ──────────────────────────────────────────────────────────────────
@@ -810,7 +810,11 @@ function applyConfig(){
   }
   const _bg=BACKGROUNDS[cfg.coverBg]||BACKGROUNDS.plage;
   const _cvr=document.getElementById('cover');
-  _cvr.style.cssText='background:'+_bg+';background-size:cover;background-position:center';
+  const isUrl=_bg.startsWith('url(');
+  _cvr.style.backgroundImage=isUrl?_bg:'none';
+  _cvr.style.background=isUrl?'':_bg;
+  _cvr.style.backgroundSize='cover';
+  _cvr.style.backgroundPosition='center';
   _cvr.style.backgroundSize='cover';
   _cvr.style.backgroundPosition='center';
   document.getElementById('col-bg').value=cfg.bg||defaultConfig.bg;
@@ -1337,7 +1341,7 @@ function renderSettings(){
   const bgGrid=document.getElementById('bg-grid');
   bgGrid.innerHTML=Object.keys(BACKGROUNDS).map(key=>`
     <div onclick="selectBg('${key}')" style="cursor:pointer;border-radius:10px;overflow:hidden;border:3px solid ${cfg.coverBg===key?'var(--accent)':'transparent'};transition:border-color 0.2s">
-      <div style="height:60px;background:${BACKGROUNDS[key]};background-size:cover;background-position:center"></div>
+      <div style="height:60px;background:${BACKGROUNDS[key]};background-image:${BACKGROUNDS[key]};background-size:cover;background-position:center;border-radius:6px"></div>
       <div style="background:var(--surface);padding:6px;text-align:center;font-size:0.8rem;font-weight:600">${T[lang].bgLabels[key]}</div>
     </div>`).join('');
 }
@@ -1926,7 +1930,7 @@ window.addEventListener('beforeinstallprompt',e=>{
 </script>
 
 <!-- HAMBURGER MENU -->
-<button id="hamburger-btn" onclick="toggleNav()" style="display:none" title="Menu">☰</button>
+<button id="hamburger-btn" onclick="toggleNav()" style="display:none">☰</button>
 
 <div id="nav-overlay" onclick="closeNav()"></div>
 <div id="nav-drawer">
