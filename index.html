@@ -218,6 +218,15 @@ th{font-weight:700;opacity:0.8}
     <div class="form-group"><label id="lbl-ev-title">Titre</label><input id="ev-title" type="text" required></div>
     <div class="form-group"><label id="lbl-ev-time">Heure</label><input id="ev-time" type="time"></div>
     <div class="form-group"><label id="lbl-ev-desc">Description</label><textarea id="ev-desc"></textarea></div>
+    <div class="form-group"><label id="lbl-ev-reminder">⏰ Rappel</label>
+      <select id="ev-reminder" style="width:100%;padding:12px 16px;border-radius:10px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:1rem">
+        <option value="-1">Pas de rappel</option>
+        <option value="0">Jour même</option>
+        <option value="1" selected>1 jour avant</option>
+        <option value="2">2 jours avant</option>
+        <option value="3">3 jours avant</option>
+        <option value="7">1 semaine avant</option>
+      </select></div>
     <button class="btn-submit" onclick="addEvent()"><span id="ev-submit-text">Ajouter</span><div class="spinner" id="ev-spinner"></div></button>
   </div>
   <div class="list-card">
@@ -234,6 +243,15 @@ th{font-weight:700;opacity:0.8}
     <h2 id="add-task-label">➕ Nouvelle tâche</h2>
     <div class="form-group"><label id="lbl-task-title">Titre</label><input id="task-title" type="text" required></div>
     <div class="form-group"><label id="lbl-task-date">Date d'échéance</label><input id="task-date" type="date"></div>
+    <div class="form-group"><label id="lbl-task-reminder">⏰ Rappel</label>
+      <select id="task-reminder" style="width:100%;padding:12px 16px;border-radius:10px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:1rem">
+        <option value="-1">Pas de rappel</option>
+        <option value="0">Jour même</option>
+        <option value="1" selected>1 jour avant</option>
+        <option value="2">2 jours avant</option>
+        <option value="3">3 jours avant</option>
+        <option value="7">1 semaine avant</option>
+      </select></div>
     <button class="btn-submit" onclick="addTask()"><span id="task-submit-text">Ajouter</span><div class="spinner" id="task-spinner"></div></button>
   </div>
   <div class="list-card" style="max-width:700px;margin:0 auto">
@@ -383,7 +401,7 @@ th{font-weight:700;opacity:0.8}
     </div>
     <!-- Alert Settings -->
     <div class="form-card" id="alert-settings-card">
-      <h2 id="lbl-alert-advance">⏰ Délai de rappel</h2>
+      <h2 id="lbl-alert-advance">⏰ Délai de rappel par défaut</h2>
       <div class="form-group" style="margin-top:12px">
         <select id="alert-advance-select" onchange="saveAlertAdvance(this.value)" style="padding:12px 16px;border-radius:10px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:1rem;width:100%">
           <option value="0">Jour même / Same day</option>
@@ -767,7 +785,10 @@ function applyConfig(){
   document.documentElement.style.setProperty('--primary',cfg.primary||defaultConfig.primary);
   document.documentElement.style.setProperty('--accent',cfg.accent||defaultConfig.accent);
   const co=document.getElementById('cover-owner');
-  if(co&&co.tagName==='INPUT'){co.value=cfg.ownerName&&cfg.ownerName!==defaultConfig.ownerName?cfg.ownerName:'';}
+  if(co){
+    if(co.tagName==='INPUT'){co.value=cfg.ownerName||'';}
+    else{const n=cfg.ownerName&&cfg.ownerName!==defaultConfig.ownerName?cfg.ownerName:'';co.textContent=n||(lang==='fr'?'Votre nom':'Your name');}
+  }
   const _bg=BACKGROUNDS[cfg.coverBg]||BACKGROUNDS.plage;
   const _cvr=document.getElementById('cover');
   _cvr.style.backgroundImage=_bg;
@@ -840,9 +861,11 @@ function renderCover(){
   document.getElementById('cover-title').innerHTML=
     '<span style="color:#eaeaea">Plan</span><span style="color:#3282b8">ivo</span>';
   document.getElementById('cover-subtitle').textContent=lang==='fr'?'Planificateur personnel intelligent':'Your smart personal planner';
-  const ownerInput=document.getElementById('cover-owner');
-  if(ownerInput) ownerInput.value=cfg.ownerName&&cfg.ownerName!=='Votre nom'?cfg.ownerName:'';
-  if(ownerInput) ownerInput.placeholder=lang==='fr'?'Votre nom':'Your name';
+  const ownerBadge=document.getElementById('cover-owner');
+  if(ownerBadge){
+    const name=cfg.ownerName&&cfg.ownerName!==defaultConfig.ownerName?cfg.ownerName:'';
+    ownerBadge.textContent=name||(lang==='fr'?'Votre nom':'Your name');
+  }
   document.getElementById('btn-start').textContent=t('start');
   document.getElementById('btn-customize').textContent=t('customize');
 }
@@ -1149,8 +1172,17 @@ function renderProfile(){
       `:`<form onsubmit="addPartnerProfile(event)">
         <div class="form-group"><label>${t('partnerName')}</label><input type="text" id="p-name" required></div>
         <div class="form-group"><label>${t('birthdate')}</label><input type="date" id="p-birth"></div>
+        <div class="form-group"><label>${lang==='fr'?'⏰ Rappel anniversaire':'⏰ Birthday reminder'}</label>
+          <select id="p-reminder" style="width:100%;padding:10px 14px;border-radius:10px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:0.95rem">
+            <option value="-1">${lang==='fr'?'Pas de rappel':'No reminder'}</option>
+            <option value="0">${lang==='fr'?'Jour même':'Same day'}</option>
+            <option value="1" selected>${lang==='fr'?'1 jour avant':'1 day before'}</option>
+            <option value="2">${lang==='fr'?'2 jours avant':'2 days before'}</option>
+            <option value="7">${lang==='fr'?'1 semaine avant':'1 week before'}</option>
+          </select>
+        </div>
         <button type="submit" class="btn-submit">${t('save')}</button>
-      </form>`}
+      </form>\`}
     </div>
   </div>
   <div class="profile-block">
@@ -1158,6 +1190,15 @@ function renderProfile(){
     <form onsubmit="addChildProfile(event)" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;align-items:end">
       <div class="form-group" style="margin:0"><label>${t('firstName')}</label><input type="text" id="ch-name" required></div>
       <div class="form-group" style="margin:0"><label>${t('birthdate')}</label><input type="date" id="ch-birth"></div>
+      <div class="form-group" style="margin:0"><label>${lang==='fr'?'⏰ Rappel anniversaire':'⏰ Birthday reminder'}</label>
+        <select id="ch-reminder" style="width:100%;padding:10px 14px;border-radius:10px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:0.95rem">
+          <option value="-1">${lang==='fr'?'Pas de rappel':'No reminder'}</option>
+          <option value="0">${lang==='fr'?'Jour même':'Same day'}</option>
+          <option value="1" selected>${lang==='fr'?'1 jour avant':'1 day before'}</option>
+          <option value="2">${lang==='fr'?'2 jours avant':'2 days before'}</option>
+          <option value="7">${lang==='fr'?'1 semaine avant':'1 week before'}</option>
+        </select>
+      </div>
       <button type="submit" class="btn-submit" style="margin-top:0">${t('addChild')}</button>
     </form>
     ${children.map(ch=>`<div class="list-item">
@@ -1178,6 +1219,15 @@ function renderProfile(){
           <option value="famille">👨‍👩‍👧 ${t('relFamille')}</option>
           <option value="ami">👥 ${t('relAmi')}</option>
           <option value="collegue">💼 ${t('relCollegue')}</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0"><label>${lang==='fr'?'⏰ Rappel':'⏰ Reminder'}</label>
+        <select id="bday-reminder" style="width:100%;padding:10px 14px;border-radius:10px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:0.95rem">
+          <option value="-1">${lang==='fr'?'Pas de rappel':'No reminder'}</option>
+          <option value="0">${lang==='fr'?'Jour même':'Same day'}</option>
+          <option value="1" selected>${lang==='fr'?'1 jour avant':'1 day before'}</option>
+          <option value="2">${lang==='fr'?'2 jours avant':'2 days before'}</option>
+          <option value="7">${lang==='fr'?'1 semaine avant':'1 week before'}</option>
         </select>
       </div>
       <button type="submit" class="btn-submit" style="margin:0">${t('addBirthday')}</button>
@@ -1268,11 +1318,13 @@ function addEvent(){
   if(!title){showToast('⚠️');return;}
   const time=document.getElementById('ev-time').value;
   const desc=document.getElementById('ev-desc').value.trim();
-  data.push({id:Date.now().toString(),type:'event',date:dateStr(selectedDate),title,time,description:desc,completed:false});
+  const reminder=parseInt(document.getElementById('ev-reminder').value);
+  data.push({id:Date.now().toString(),type:'event',date:dateStr(selectedDate),title,time,description:desc,completed:false,reminder});
   saveData(data);
   document.getElementById('ev-title').value='';
   document.getElementById('ev-time').value='';
   document.getElementById('ev-desc').value='';
+  document.getElementById('ev-reminder').value='1';
   showToast(t('eventAdded'));renderDay();
 }
 
@@ -1280,10 +1332,12 @@ function addTask(){
   const title=document.getElementById('task-title').value.trim();
   if(!title){showToast('⚠️');return;}
   const date=document.getElementById('task-date').value;
-  data.push({id:Date.now().toString(),type:'task',date,title,completed:false});
+  const reminder=parseInt(document.getElementById('task-reminder').value);
+  data.push({id:Date.now().toString(),type:'task',date,title,completed:false,reminder});
   saveData(data);
   document.getElementById('task-title').value='';
   document.getElementById('task-date').value='';
+  document.getElementById('task-reminder').value='1';
   showToast(t('taskAdded'));renderTasks();
 }
 
@@ -1330,9 +1384,10 @@ function addPartnerProfile(e){
   e.preventDefault();
   const name=document.getElementById('p-name').value.trim();
   const birth=document.getElementById('p-birth').value;
+  const reminder=parseInt(document.getElementById('p-reminder')?.value??'1');
   const id=Date.now().toString();
   data.push({id,type:'profile',category:'partner',title:name,description:'',date:birth});
-  if(name&&birth) syncProfileBirthday(id,name,birth,'famille');
+  if(name&&birth) syncProfileBirthday(id,name,birth,'famille',reminder);
   saveData(data);showToast(t('saved'));renderProfile();
 }
 
@@ -1340,10 +1395,11 @@ function addChildProfile(e){
   e.preventDefault();
   const name=document.getElementById('ch-name').value.trim();
   const birth=document.getElementById('ch-birth').value;
+  const reminder=parseInt(document.getElementById('ch-reminder')?.value??'1');
   if(!name)return;
   const id=Date.now().toString();
   data.push({id,type:'profile',category:'child',title:name,description:'',date:birth});
-  if(birth) syncProfileBirthday(id,name,birth,'famille');
+  if(birth) syncProfileBirthday(id,name,birth,'famille',reminder);
   saveData(data);showToast(t('saved'));renderProfile();
 }
 
@@ -1661,8 +1717,9 @@ function addBirthday(e){
   const name=document.getElementById('bday-name').value.trim();
   const date=document.getElementById('bday-date').value;
   const relation=document.getElementById('bday-relation').value;
+  const reminder=parseInt(document.getElementById('bday-reminder')?.value??'1');
   if(!name){showToast('⚠️');return;}
-  data.push({id:Date.now().toString(),type:'birthday',title:name,date,relation});
+  data.push({id:Date.now().toString(),type:'birthday',title:name,date,relation,reminder});
   saveData(data);
   document.getElementById('bday-name').value='';
   document.getElementById('bday-date').value='';
@@ -1682,53 +1739,55 @@ function saveAlertAdvance(val){
 function checkAlerts(){
   const todayStr=dateStr(new Date());
   if(cfg.alertDismissedDate===todayStr) return;
-  const advance=parseInt(cfg.alertAdvance)||1;
   const alerts=[];
 
-  // Helper: date in advance window?
-  function inWindow(ds){
+  // Helper: is date within item's own reminder window?
+  function inItemWindow(ds, itemReminder){
     if(!ds) return false;
+    const advance = itemReminder !== undefined && itemReminder >= 0 ? itemReminder : (parseInt(cfg.alertAdvance)||1);
+    if(advance < 0) return false; // no reminder
     for(let i=0;i<=advance;i++){
       const d=new Date(); d.setDate(d.getDate()+i);
       if(dateStr(d)===ds) return {match:true,days:i};
     }
     return false;
   }
+  function whenLabel(days){
+    if(days===0) return lang==='fr'?'Aujourd\'hui':'Today';
+    if(days===1) return lang==='fr'?'Demain':'Tomorrow';
+    return lang==='fr'?`Dans ${days} jours`:`In ${days} days`;
+  }
 
   // Events upcoming
   const events=data.filter(e=>e.type==='event');
   events.forEach(ev=>{
-    const w=inWindow(ev.date);
-    if(w){
-      const when=w.days===0?(lang==='fr'?'Aujourd\'hui':'Today'):w.days===1?(lang==='fr'?'Demain':'Tomorrow'):(lang==='fr'?`Dans ${w.days} jours`:`In ${w.days} days`);
-      alerts.push({icon:'📅',text:`<strong>${when}</strong> — ${ev.title}${ev.time?' à '+ev.time:''}`});
-    }
+    const w=inItemWindow(ev.date, ev.reminder);
+    if(w) alerts.push({icon:'📅',text:`<strong>${whenLabel(w.days)}</strong> — ${ev.title}${ev.time?' à '+ev.time:''}`});
   });
 
   // Tasks overdue or due soon
   const tasks=data.filter(e=>e.type==='task'&&!e.completed&&e.date);
   tasks.forEach(tk=>{
+    if(tk.reminder===-1) return; // no reminder
     if(tk.date<todayStr){
       alerts.push({icon:'⚠️',text:`<strong>${t('overdue')}</strong> — ${tk.title}`});
     } else {
-      const w=inWindow(tk.date);
-      if(w&&w.days>0){
-        const when=w.days===1?(lang==='fr'?'Demain':'Tomorrow'):(lang==='fr'?`Dans ${w.days} jours`:`In ${w.days} days`);
-        alerts.push({icon:'✅',text:`<strong>${when}</strong> — ${tk.title}`});
-      }
+      const w=inItemWindow(tk.date, tk.reminder);
+      if(w&&w.days>0) alerts.push({icon:'✅',text:`<strong>${whenLabel(w.days)}</strong> — ${tk.title}`});
     }
   });
 
   // Birthdays
   const bdays=data.filter(e=>e.type==='birthday'&&e.date);
   bdays.forEach(b=>{
+    if(b.reminder===-1) return; // no reminder
+    const advance = b.reminder !== undefined && b.reminder >= 0 ? b.reminder : (parseInt(cfg.alertAdvance)||1);
     for(let i=0;i<=advance;i++){
       const d=new Date(); d.setDate(d.getDate()+i);
       const mmdd=`-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       if(b.date.endsWith(mmdd)){
         const age=calcAge(b.date);
-        const when=i===0?(lang==='fr'?'Aujourd\'hui':'Today'):i===1?(lang==='fr'?'Demain':'Tomorrow'):(lang==='fr'?`Dans ${i} jours`:`In ${i} days`);
-        alerts.push({icon:'🎂',text:`<strong>${when}</strong> — ${b.title} (${age} ${t('age')})`});
+        alerts.push({icon:'🎂',text:`<strong>${whenLabel(i)}</strong> — ${b.title} (${age} ${t('age')})`});
         break;
       }
     }
@@ -1757,7 +1816,8 @@ function dismissAlerts(){
 
 
 // ── SYNC PROFILE → BIRTHDAY ────────────────────────────────────────────────
-function syncProfileBirthday(profileId, name, date, relation){
+function syncProfileBirthday(profileId, name, date, relation, reminder){
+  reminder = reminder !== undefined ? reminder : 1;
   // Remove any existing auto birthday for this profile
   data = data.filter(e => !(e.type==='birthday' && e.autoSource===profileId));
   // Add fresh auto birthday
@@ -1767,6 +1827,7 @@ function syncProfileBirthday(profileId, name, date, relation){
     title: name,
     date: date,
     relation: relation,
+    reminder: reminder,
     autoGenerated: true,
     autoSource: profileId
   });
