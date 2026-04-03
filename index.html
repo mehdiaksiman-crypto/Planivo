@@ -1894,11 +1894,18 @@ document.getElementById('cover').style.display='flex';
 renderCover();
 migrateProfileBirthdays();
 checkAlerts();
-// Bouton installer — visible immédiatement dans le browser
+// Bouton installer — masqué si app déjà installée
 (function(){
   const banner = document.getElementById('install-banner');
   if(!banner) return;
-  if(isStandalone()){
+  // Vérification multiple pour détecter mode standalone
+  const standalone = window.matchMedia('(display-mode: standalone)').matches
+    || window.matchMedia('(display-mode: fullscreen)').matches
+    || window.matchMedia('(display-mode: minimal-ui)').matches
+    || window.navigator.standalone === true
+    || document.referrer.startsWith('android-app://')
+    || window.location.href.includes('?source=pwa');
+  if(standalone){
     banner.style.display='none';
   } else {
     const txt = document.getElementById('install-btn-text');
@@ -1928,8 +1935,11 @@ window.addEventListener('beforeinstallprompt',e=>{
 // ── STANDALONE CHECK ───────────────────────────────────────────────────────
 function isStandalone(){
   return window.matchMedia('(display-mode: standalone)').matches
+    || window.matchMedia('(display-mode: fullscreen)').matches
+    || window.matchMedia('(display-mode: minimal-ui)').matches
     || window.navigator.standalone===true
-    || document.referrer.includes('android-app://');
+    || document.referrer.startsWith('android-app://')
+    || window.location.href.includes('?source=pwa');
 }
 
 // ── HAMBURGER NAVIGATION ───────────────────────────────────────────────────
