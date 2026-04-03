@@ -1919,13 +1919,8 @@ if('serviceWorker' in navigator){
 
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();deferredPrompt=e;
-  const btn=document.createElement('button');
-  btn.id='install-btn';
-  btn.style.cssText='position:fixed;bottom:80px;right:16px;z-index:1000;background:var(--accent);color:#fff;border:none;padding:12px 20px;border-radius:24px;font-weight:700;font-size:0.95rem;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.3)';
-  btn.textContent="📲 Installer l'app";
-  btn.onclick=()=>{deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{btn.remove();deferredPrompt=null;});};
-  document.body.appendChild(btn);
+  e.preventDefault();
+  deferredPrompt=e;
 });
 
 </script>
