@@ -1148,6 +1148,20 @@ function renderBudget(){
     </div>`;
 }
 
+
+function reminderSelectHTML(id){ return reminderSelectPlain(id); }
+
+
+function reminderSelectPlain(id){
+  const fr=lang==='fr';
+  return '<select id="'+id+'" style="width:100%;padding:10px 14px;border-radius:10px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:0.95rem">'
+    +'<option value="-1">'+(fr?'Pas de rappel':'No reminder')+'</option>'
+    +'<option value="0">'+(fr?'Jour même':'Same day')+'</option>'
+    +'<option value="1" selected>'+(fr?'1 jour avant':'1 day before')+'</option>'
+    +'<option value="2">'+(fr?'2 jours avant':'2 days before')+'</option>'
+    +'<option value="7">'+(fr?'1 semaine avant':'1 week before')+'</option>'
+    +'</select>';
+}
 function renderProfile(){
   document.getElementById('profile-title').textContent=t('profile');
   const c=document.getElementById('profile-content');
@@ -1155,18 +1169,42 @@ function renderProfile(){
   const partnerP=data.find(e=>e.type==='profile'&&e.category==='partner');
   const children=data.filter(e=>e.type==='profile'&&e.category==='child');
   const genderIcon=userP?.description==='Féminin'||userP?.description==='Female'?'👩':userP?.description?'👨':'🧑';
+  const fr=lang==='fr';
+
+  // Precompute reminder select HTML to avoid nested template literal issues
+  const rSel = (id) => {
+    const opts = [
+      ['<option value="-1">',fr?'Pas de rappel':'No reminder'],
+      ['<option value="0">',fr?'Jour même':'Same day'],
+      ['<option value="1" selected>',fr?'1 jour avant':'1 day before'],
+      ['<option value="2">',fr?'2 jours avant':'2 days before'],
+      ['<option value="7">',fr?'1 semaine avant':'1 week before']
+    ].map(o=>o[0]+o[1]+'</option>').join('');
+    return `<select id="${id}" style="width:100%;padding:10px 14px;border-radius:10px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:0.95rem">${opts}</select>`;
+  };
+
+  const pReminderSel = rSel('p-reminder');
+  const chReminderSel = rSel('ch-reminder');
+  const bdayReminderSel = rSel('bday-reminder');
+  const bdayRelLabel = fr?'⏰ Rappel':'⏰ Reminder';
+  const pRelLabel = fr?'⏰ Rappel anniversaire':'⏰ Birthday reminder';
+  const chRelLabel = fr?'⏰ Rappel anniversaire':'⏰ Birthday reminder';
+
+  const relClass={famille:'rel-famille',ami:'rel-ami',collegue:'rel-collegue'};
+  const relLabel={famille:t('relFamille'),ami:t('relAmi'),collegue:t('relCollegue')};
+
   c.innerHTML=`
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:20px">
     <div class="profile-block">
       <h2 style="font-weight:700;font-size:1.2rem;margin-bottom:16px">${genderIcon} ${t('myInfo')}</h2>
       ${userP?`
         <p><strong>${t('gender')} :</strong> ${userP.description}</p>
-        <p><strong>${t('birthdate')} :</strong> ${userP.date?new Date(userP.date+'T00:00:00').toLocaleDateString(lang==='fr'?'fr-FR':'en-CA',{day:'numeric',month:'long',year:'numeric'}):'-'}</p>
+        <p><strong>${t('birthdate')} :</strong> ${userP.date?new Date(userP.date+'T00:00:00').toLocaleDateString(fr?'fr-FR':'en-CA',{day:'numeric',month:'long',year:'numeric'}):'-'}</p>
         ${userP.date?`<div class="age-badge">${calcAge(userP.date)} ${t('age')}</div>`:''}
         <button class="btn-delete" style="margin-top:12px" onclick="deleteItem('${userP.id}','profile')">🗑️</button>
       `:`<form onsubmit="addUserProfile(event)">
         <div class="form-group"><label>${t('gender')}</label>
-          <select id="u-gender"><option value="${lang==='fr'?'Masculin':'Male'}">${t('male')}</option><option value="${lang==='fr'?'Féminin':'Female'}">${t('female')}</option><option value="${lang==='fr'?'Autre':'Other'}">${t('other')}</option></select></div>
+          <select id="u-gender"><option value="${fr?'Masculin':'Male'}">${t('male')}</option><option value="${fr?'Féminin':'Female'}">${t('female')}</option><option value="${fr?'Autre':'Other'}">${t('other')}</option></select></div>
         <div class="form-group"><label>${t('birthdate')}</label><input type="date" id="u-birth"></div>
         <button type="submit" class="btn-submit">${t('save')}</button>
       </form>`}
@@ -1175,23 +1213,15 @@ function renderProfile(){
       <h2 style="font-weight:700;font-size:1.2rem;margin-bottom:16px">💑 ${t('partner')}</h2>
       ${partnerP?`
         <p><strong>${t('partnerName')} :</strong> ${partnerP.title}</p>
-        <p><strong>${t('birthdate')} :</strong> ${partnerP.date?new Date(partnerP.date+'T00:00:00').toLocaleDateString(lang==='fr'?'fr-FR':'en-CA',{day:'numeric',month:'long',year:'numeric'}):'-'}</p>
+        <p><strong>${t('birthdate')} :</strong> ${partnerP.date?new Date(partnerP.date+'T00:00:00').toLocaleDateString(fr?'fr-FR':'en-CA',{day:'numeric',month:'long',year:'numeric'}):'-'}</p>
         ${partnerP.date?`<div class="age-badge">${calcAge(partnerP.date)} ${t('age')}</div>`:''}
         <button class="btn-delete" style="margin-top:12px" onclick="deleteItem('${partnerP.id}','profile')">🗑️</button>
       `:`<form onsubmit="addPartnerProfile(event)">
         <div class="form-group"><label>${t('partnerName')}</label><input type="text" id="p-name" required></div>
         <div class="form-group"><label>${t('birthdate')}</label><input type="date" id="p-birth"></div>
-        <div class="form-group"><label>${lang==='fr'?'⏰ Rappel anniversaire':'⏰ Birthday reminder'}</label>
-          <select id="p-reminder" style="width:100%;padding:10px 14px;border-radius:10px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:0.95rem">
-            <option value="-1">${lang==='fr'?'Pas de rappel':'No reminder'}</option>
-            <option value="0">${lang==='fr'?'Jour même':'Same day'}</option>
-            <option value="1" selected>${lang==='fr'?'1 jour avant':'1 day before'}</option>
-            <option value="2">${lang==='fr'?'2 jours avant':'2 days before'}</option>
-            <option value="7">${lang==='fr'?'1 semaine avant':'1 week before'}</option>
-          </select>
-        </div>
+        <div class="form-group"><label>${pRelLabel}</label>${pReminderSel}</div>
         <button type="submit" class="btn-submit">${t('save')}</button>
-      </form>\`}
+      </form>`}
     </div>
   </div>
   <div class="profile-block">
@@ -1199,20 +1229,12 @@ function renderProfile(){
     <form onsubmit="addChildProfile(event)" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;align-items:end">
       <div class="form-group" style="margin:0"><label>${t('firstName')}</label><input type="text" id="ch-name" required></div>
       <div class="form-group" style="margin:0"><label>${t('birthdate')}</label><input type="date" id="ch-birth"></div>
-      <div class="form-group" style="margin:0"><label>${lang==='fr'?'⏰ Rappel anniversaire':'⏰ Birthday reminder'}</label>
-        <select id="ch-reminder" style="width:100%;padding:10px 14px;border-radius:10px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:0.95rem">
-          <option value="-1">${lang==='fr'?'Pas de rappel':'No reminder'}</option>
-          <option value="0">${lang==='fr'?'Jour même':'Same day'}</option>
-          <option value="1" selected>${lang==='fr'?'1 jour avant':'1 day before'}</option>
-          <option value="2">${lang==='fr'?'2 jours avant':'2 days before'}</option>
-          <option value="7">${lang==='fr'?'1 semaine avant':'1 week before'}</option>
-        </select>
-      </div>
+      <div class="form-group" style="margin:0"><label>${chRelLabel}</label>${chReminderSel}</div>
       <button type="submit" class="btn-submit" style="margin-top:0">${t('addChild')}</button>
     </form>
     ${children.map(ch=>`<div class="list-item">
       <div class="info"><h3>👶 ${ch.title}</h3>
-        <p>${ch.date?new Date(ch.date+'T00:00:00').toLocaleDateString(lang==='fr'?'fr-FR':'en-CA',{day:'numeric',month:'long',year:'numeric'}):''}</p>
+        <p>${ch.date?new Date(ch.date+'T00:00:00').toLocaleDateString(fr?'fr-FR':'en-CA',{day:'numeric',month:'long',year:'numeric'}):''}</p>
         ${ch.date?`<div class="age-badge" style="font-size:0.9rem;padding:4px 14px">${calcAge(ch.date)} ${t('age')}</div>`:''}
       </div>
       <button class="btn-delete" onclick="deleteItem('${ch.id}','profile')">🗑️</button>
@@ -1224,34 +1246,24 @@ function renderProfile(){
       <div class="form-group" style="margin:0"><label>${t('bdayName')}</label><input type="text" id="bday-name" required></div>
       <div class="form-group" style="margin:0"><label>${t('birthdate')}</label><input type="date" id="bday-date"></div>
       <div class="form-group" style="margin:0"><label>${t('bdayRelation')}</label>
-        <select id="bday-relation">
+        <select id="bday-relation" style="width:100%;padding:10px 14px;border-radius:10px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:0.95rem">
           <option value="famille">👨‍👩‍👧 ${t('relFamille')}</option>
           <option value="ami">👥 ${t('relAmi')}</option>
           <option value="collegue">💼 ${t('relCollegue')}</option>
         </select>
       </div>
-      <div class="form-group" style="margin:0"><label>${lang==='fr'?'⏰ Rappel':'⏰ Reminder'}</label>
-        <select id="bday-reminder" style="width:100%;padding:10px 14px;border-radius:10px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:0.95rem">
-          <option value="-1">${lang==='fr'?'Pas de rappel':'No reminder'}</option>
-          <option value="0">${lang==='fr'?'Jour même':'Same day'}</option>
-          <option value="1" selected>${lang==='fr'?'1 jour avant':'1 day before'}</option>
-          <option value="2">${lang==='fr'?'2 jours avant':'2 days before'}</option>
-          <option value="7">${lang==='fr'?'1 semaine avant':'1 week before'}</option>
-        </select>
-      </div>
+      <div class="form-group" style="margin:0"><label>${bdayRelLabel}</label>${bdayReminderSel}</div>
       <button type="submit" class="btn-submit" style="margin:0">${t('addBirthday')}</button>
     </form>
     ${(()=>{
       const bdays=data.filter(e=>e.type==='birthday');
       if(bdays.length===0) return `<p style="opacity:0.5;text-align:center;padding:16px">${t('noBirthdays')}</p>`;
-      const relClass={'famille':'rel-famille','ami':'rel-ami','collegue':'rel-collegue'};
-      const relLabel={'famille':t('relFamille'),'ami':t('relAmi'),'collegue':t('relCollegue')};
       return bdays.map(b=>{
         const ageStr=b.date?` — ${calcAge(b.date)} ${t('age')}`:'';
-        const dateStr2=b.date?new Date(b.date+'T00:00:00').toLocaleDateString(lang==='fr'?'fr-FR':'en-CA',{day:'numeric',month:'long'}):'';
-        const autoLabel=b.autoGenerated?(lang==='fr'?'<span style="font-size:0.72rem;opacity:0.6;margin-left:6px">🔗 Profil</span>':'<span style="font-size:0.72rem;opacity:0.6;margin-left:6px">🔗 Profile</span>'):'';
+        const dateStr2=b.date?new Date(b.date+'T00:00:00').toLocaleDateString(fr?'fr-FR':'en-CA',{day:'numeric',month:'long'}):'';
+        const autoLabel=b.autoGenerated?`<span style="font-size:0.72rem;opacity:0.6;margin-left:6px">🔗 ${fr?'Profil':'Profile'}</span>`:'';
         const deleteBtn=b.autoGenerated
-          ?`<span style="font-size:0.75rem;opacity:0.5;padding:6px 10px">${lang==='fr'?'Auto':'Auto'}</span>`
+          ?`<span style="font-size:0.75rem;opacity:0.5;padding:6px 10px">${fr?'Auto':'Auto'}</span>`
           :`<button class="btn-delete" onclick="deleteItem('${b.id}','profile')">🗑️</button>`;
         return `<div class="list-item">
           <div class="info">
