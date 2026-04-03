@@ -2002,8 +2002,9 @@ function handleInstallClick(){
       deferredPrompt=null;
       if(c.outcome==='accepted'){const b=document.getElementById('install-banner');if(b)b.style.display='none';}
     });
+  } else {
+    showInstallModal();
   }
-  showInstallModal();
 }
 function showInstallModal(){
   const modal=document.getElementById('install-modal');
