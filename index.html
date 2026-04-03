@@ -53,7 +53,8 @@ input,select,textarea{font-family:inherit;outline:none}
 .toc-card p{opacity:0.75;font-size:0.9rem}
 
 /* Calendar */
-.cal-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:24px;max-width:1200px;margin-left:auto;margin-right:auto;padding-left:60px;padding-right:130px}
+.cal-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:nowrap;gap:8px;margin-bottom:24px;max-width:1200px;margin-left:auto;margin-right:auto;padding-left:60px;padding-right:130px}
+.cal-header h2{flex:1;min-width:0;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;max-width:1200px;margin:0 auto}
 .day-name{background:var(--surface);border-radius:8px;padding:10px;text-align:center;font-weight:700}
 .cal-day{background:var(--surface);border-radius:10px;padding:12px;min-height:90px;cursor:pointer;transition:transform 0.15s;border:3px solid transparent}
@@ -134,6 +135,46 @@ th{font-weight:700;opacity:0.8}
 .nav-item-active{background:var(--bg);border-left:3px solid var(--accent);color:var(--accent)}
 .nav-item .nav-icon{font-size:1.3rem;width:28px;text-align:center}
 .nav-section{padding:8px 20px 4px;font-size:0.75rem;opacity:0.5;text-transform:uppercase;letter-spacing:0.08em;font-weight:700}
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .cal-header{padding-left:52px;padding-right:116px}
+  .cal-header h2{font-size:1.3rem!important}
+  .cal-day{padding:8px;min-height:70px;font-size:0.9rem}
+  .day-name{padding:7px;font-size:0.8rem}
+  .stat-card .value{font-size:1.6rem}
+}
+@media(max-width:600px){
+  .view{padding:10px;padding-top:66px}
+  .cal-header{padding-left:48px;padding-right:106px;gap:6px;margin-bottom:14px}
+  .cal-header h2{font-size:1.1rem!important}
+  .btn-nav{padding:8px 13px;font-size:0.9rem}
+  .cal-grid{gap:4px}
+  .cal-day{padding:5px;min-height:54px;font-size:0.8rem;border-width:2px}
+  .cal-day>div:first-child{font-size:0.95rem;margin-bottom:2px}
+  .day-name{padding:5px 2px;font-size:0.72rem}
+  .year-grid{grid-template-columns:repeat(2,1fr)!important;gap:10px}
+  .month-card{padding:14px}
+  .month-card h2{font-size:1.05rem!important}
+  .form-card{padding:16px}
+  .list-card{padding:14px}
+  .stat-grid{gap:10px}
+  .stat-card{padding:14px}
+  .stat-card .value{font-size:1.3rem}
+  table{font-size:0.78rem}
+  th,td{padding:8px 5px}
+  .btn-delete{padding:6px 10px;font-size:0.8rem}
+  .section-title{font-size:1.4rem}
+}
+@media(max-width:400px){
+  .cal-header{padding-left:46px;padding-right:100px}
+  .cal-header h2{font-size:0.95rem!important}
+  .cal-day{min-height:44px;padding:3px}
+  .cal-day>div:first-child{font-size:0.85rem}
+  .day-name{font-size:0.65rem;padding:4px 1px}
+  .dot,.bday-dot{width:6px;height:6px}
+  .year-grid{gap:8px}
+  .month-card{padding:10px}
+}
 /* ── INSTALL BUTTON ── */
 #install-banner{display:flex;align-items:center;gap:10px;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:2000;background:#3282b8;color:#fff;border:none;padding:14px 28px;border-radius:28px;font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,0.4);white-space:nowrap;font-family:inherit;animation:fadeIn 0.4s ease}
 #install-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9998;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
