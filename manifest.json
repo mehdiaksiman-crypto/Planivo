@@ -1,8 +1,8 @@
 {
-  "name": "Planivo — Smart Planner",
+  "name": "Planivo \u2014 Smart Planner",
   "short_name": "Planivo",
-  "description": "Planificateur personnel intelligent — calendrier, tâches, budget, profil / Smart personal planner",
-  "start_url": "/",
+  "description": "Planificateur personnel intelligent \u2014 calendrier, t\u00e2ches, budget, profil / Smart personal planner",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#3282b8",
@@ -25,5 +25,6 @@
   "categories": [
     "productivity",
     "lifestyle"
-  ]
+  ],
+  "scope": "./"
 }
