@@ -23,7 +23,7 @@ R : Vos données seront effacées. Nous vous recommandons fortement d'exporter r
 ---
 
 **Q : Est-ce que je peux utiliser Planivo sur mon téléphone ET mon ordinateur ?**
-R : Oui. Installez Planivo sur chaque appareil. Utilisez la fonction **QR Code** ou **Export/Import** pour synchroniser vos données entre les appareils.
+R : Oui. Installez Planivo sur chaque appareil. Utilisez la fonction **Export/Import JSON** (Paramètres → Exporter mes données) pour transférer vos données entre appareils.
 
 ---
 
@@ -52,8 +52,6 @@ R : Oui. L'export JSON inclut absolument tout : événements, tâches, dépenses
 
 ---
 
-**Q : Le QR Code fonctionne-t-il si j'ai beaucoup de données ?**
-R : Pour de grands volumes de données (500+ entrées), le QR Code peut être difficile à scanner. Dans ce cas, utilisez la méthode Export/Import JSON qui ne souffre d'aucune limitation de taille.
 
 ---
 
@@ -102,7 +100,7 @@ A: Your data will be erased. We strongly recommend regularly exporting your data
 ---
 
 **Q: Can I use Planivo on my phone AND my computer?**
-A: Yes. Install Planivo on each device. Use the **QR Code** or **Export/Import** feature to sync your data between devices.
+A: Yes. Install Planivo on each device. Use the **Export/Import JSON** feature (Settings → Export my data) to transfer your data between devices.
 
 ---
 
@@ -131,8 +129,6 @@ A: Yes. The JSON export includes absolutely everything: events, tasks, expenses,
 
 ---
 
-**Q: Does the QR Code work if I have a lot of data?**
-A: For large data volumes (500+ entries), the QR Code may be hard to scan. In that case, use the JSON Export/Import method which has no size limitation.
 
 ---
 

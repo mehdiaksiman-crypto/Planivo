@@ -17,7 +17,7 @@ Planivo est un planificateur personnel numérique complet, installable sur votre
 - 👤 Profil personnel, conjoint et enfants avec calcul d'âge automatique
 - 🎨 Personnalisation complète (couleurs, nom, devise, fond)
 - 💾 Export/Import de vos données (fichier JSON)
-- 📱 Transfert entre appareils via QR Code
+- 📱 Transfert entre appareils via Export/Import JSON
 - 🌐 Bilingue Français / Anglais
 
 ---
@@ -67,13 +67,12 @@ Vos données sont stockées localement sur votre appareil.
 
 ---
 
-### 📱 TRANSFÉRER ENTRE APPAREILS (QR CODE)
+### 📱 TRANSFÉRER ENTRE APPAREILS
 
-1. Sur l'appareil source : **Paramètres** → **"📱 Transférer via QR Code"**
-2. Faites une capture d'écran du QR Code affiché
-3. Envoyez la capture à votre autre appareil (WhatsApp, email, AirDrop...)
-4. Sur l'appareil destination : **Paramètres** → **"📸 Charger une capture QR"**
-5. Sélectionnez la capture → vos données sont transférées ✅
+1. Sur l'appareil source : **Paramètres** → **"📥 Exporter mes données"** → un fichier `.json` se télécharge
+2. Transférez ce fichier sur l'autre appareil (WhatsApp, email, câble USB...)
+3. Sur l'appareil destination : **Paramètres** → **"📤 Restaurer mes données"**
+4. Sélectionnez le fichier `.json` → vos données sont transférées ✅
 
 ---
 
@@ -107,7 +106,7 @@ Planivo is a complete smart personal planner, installable on your phone, tablet 
 - 👤 Personal profile with partner & children, automatic age calculation
 - 🎨 Full customization (colors, name, currency, background)
 - 💾 Data export/import (JSON file)
-- 📱 Device transfer via QR Code
+- 📱 Device transfer via Export/Import JSON
 - 🌐 Bilingual French / English
 
 ---
@@ -157,13 +156,12 @@ Your data is stored locally on your device.
 
 ---
 
-### 📱 TRANSFER BETWEEN DEVICES (QR CODE)
+### 📱 TRANSFER BETWEEN DEVICES
 
-1. On the source device: **Settings** → **"📱 Transfer via QR Code"**
-2. Take a screenshot of the QR Code displayed
-3. Send the screenshot to your other device (WhatsApp, email, AirDrop...)
-4. On the destination device: **Settings** → **"📸 Upload QR screenshot"**
-5. Select the screenshot → your data is transferred ✅
+1. On the source device: **Settings** → **"📥 Export my data"** → a `.json` file downloads
+2. Transfer this file to the other device (WhatsApp, email, USB cable...)
+3. On the destination device: **Settings** → **"📤 Restore my data"**
+4. Select the `.json` file → your data is transferred ✅
 
 ---
 
