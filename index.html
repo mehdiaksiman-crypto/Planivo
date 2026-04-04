@@ -1863,7 +1863,8 @@ function saveAlertAdvance(val){
 // ── CHECK & SHOW ALERTS ────────────────────────────────────────────────────
 function checkAlerts(){
   const todayStr=dateStr(new Date());
-  if(cfg.alertDismissedDate===todayStr) return;
+  // sessionStorage s'efface à chaque fermeture — les alertes réapparaissent à chaque ouverture
+  if(sessionStorage.getItem('alertDismissed')==='1') return;
   const alerts=[];
 
   // Helper: is date within item's own reminder window?
@@ -1935,8 +1936,7 @@ function checkAlerts(){
 function dismissAlerts(){
   const modal=document.getElementById('alert-modal');
   if(modal) modal.classList.remove('show');
-  cfg.alertDismissedDate=dateStr(new Date());
-  saveConfig(cfg);
+  sessionStorage.setItem('alertDismissed','1');
 }
 
 
