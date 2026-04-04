@@ -1376,7 +1376,7 @@ function renderSettings(){
   const installWrap = document.getElementById('settings-install-wrap');
   const installTxt = document.getElementById('settings-install-text');
   if(installWrap){
-    const showBtn = !isStandalone() && localStorage.getItem('planivo_pwa_installed')!=='1';
+    const showBtn = !isStandalone();
     installWrap.style.display = showBtn ? 'block' : 'none';
     if(installTxt) installTxt.textContent = lang==='fr' ? "Installer l'app" : "Install the app";
   }
@@ -2014,11 +2014,14 @@ if('serviceWorker' in navigator){
   });
 }
 
+// Si pas en mode standalone, l'app n'est pas installée → effacer le flag
+if(!isStandalone()) localStorage.removeItem('planivo_pwa_installed');
+
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{
   e.preventDefault();
-  // Ne jamais montrer si déjà installé ou en mode standalone
-  if(isStandalone() || localStorage.getItem('planivo_pwa_installed')==='1') return;
+  // Ne montrer que si pas en mode standalone
+  if(isStandalone()) return;
   deferredPrompt=e;
   showInstallBanner();
 });
@@ -2050,8 +2053,7 @@ function isStandalone(){
     || window.matchMedia('(display-mode: minimal-ui)').matches
     || window.navigator.standalone===true
     || document.referrer.startsWith('android-app://')
-    || window.location.href.includes('?source=pwa')
-    || localStorage.getItem('planivo_pwa_installed')==='1';
+    || window.location.href.includes('?source=pwa');
 }
 
 // ── HAMBURGER NAVIGATION ───────────────────────────────────────────────────
