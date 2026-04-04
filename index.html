@@ -1419,6 +1419,7 @@ function addTask(){
   const title=document.getElementById('task-title').value.trim();
   if(!title){showToast('⚠️');return;}
   const date=document.getElementById('task-date').value;
+  if(!date){showToast(lang==='fr'?'⚠️ Date d\'échéance requise':'⚠️ Due date required');return;}
   const reminder=parseInt(document.getElementById('task-reminder').value);
   data.push({id:Date.now().toString(),type:'task',date,title,completed:false,reminder});
   saveData(data);
@@ -1463,6 +1464,7 @@ function addUserProfile(e){
   e.preventDefault();
   const gender=document.getElementById('u-gender').value;
   const birth=document.getElementById('u-birth').value;
+  if(!birth){showToast(lang==='fr'?'⚠️ Date de naissance requise':'⚠️ Birth date required');return;}
   data.push({id:Date.now().toString(),type:'profile',category:'user',title:'',description:gender,date:birth});
   saveData(data);showToast(t('saved'));renderProfile();
 }
@@ -1472,6 +1474,8 @@ function addPartnerProfile(e){
   const name=document.getElementById('p-name').value.trim();
   const birth=document.getElementById('p-birth').value;
   const reminder=parseInt(document.getElementById('p-reminder')?.value??'1');
+  if(!name){showToast(lang==='fr'?'⚠️ Nom requis':'⚠️ Name required');return;}
+  if(!birth){showToast(lang==='fr'?'⚠️ Date de naissance requise':'⚠️ Birth date required');return;}
   const id=Date.now().toString();
   data.push({id,type:'profile',category:'partner',title:name,description:'',date:birth});
   if(name&&birth) syncProfileBirthday(id,name,birth,'famille',reminder);
@@ -1483,7 +1487,8 @@ function addChildProfile(e){
   const name=document.getElementById('ch-name').value.trim();
   const birth=document.getElementById('ch-birth').value;
   const reminder=parseInt(document.getElementById('ch-reminder')?.value??'1');
-  if(!name)return;
+  if(!name){showToast(lang==='fr'?'⚠️ Prénom requis':'⚠️ First name required');return;}
+  if(!birth){showToast(lang==='fr'?'⚠️ Date de naissance requise':'⚠️ Birth date required');return;}
   const id=Date.now().toString();
   data.push({id,type:'profile',category:'child',title:name,description:'',date:birth});
   if(birth) syncProfileBirthday(id,name,birth,'famille',reminder);
@@ -1806,6 +1811,7 @@ function addBirthday(e){
   const relation=document.getElementById('bday-relation').value;
   const reminder=parseInt(document.getElementById('bday-reminder')?.value??'1');
   if(!name){showToast('⚠️');return;}
+  if(!date){showToast(lang==='fr'?'⚠️ Date de naissance requise':'⚠️ Birth date required');return;}
   data.push({id:Date.now().toString(),type:'birthday',title:name,date,relation,reminder});
   saveData(data);
   document.getElementById('bday-name').value='';
