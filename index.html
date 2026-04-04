@@ -1805,59 +1805,39 @@ function importFromQRImage(event){
   const file = event.target.files[0];
   if(!file) return;
 
-  // Utiliser jsQR via canvas pour décoder
-  const img = new Image();
-  img.onload = function(){
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const objectUrl = URL.createObjectURL(file);
 
-    // Charger jsQR dynamiquement
-    if(typeof jsQR === 'undefined'){
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
-      script.onload = () => decodeQRFromImageData(imageData);
-      document.head.appendChild(script);
-    } else {
-      decodeQRFromImageData(imageData);
-    }
-  };
-  img.src = URL.createObjectURL(file);
+  function runDecode(){
+    const codeReader = new ZXing.BrowserQRCodeReader();
+    codeReader.decodeFromImageUrl(objectUrl)
+      .then(function(result){
+        URL.revokeObjectURL(objectUrl);
+        processQRData(result.text);
+      })
+      .catch(function(){
+        URL.revokeObjectURL(objectUrl);
+        showToast(lang==='fr' ? '❌ QR Code non détecté' : '❌ QR Code not detected');
+      });
+  }
+
+  if(typeof ZXing === 'undefined'){
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/@zxing/library@0.19.2/umd/index.min.js';
+    script.onload = runDecode;
+    script.onerror = function(){
+      showToast(lang==='fr' ? '❌ Erreur de chargement du décodeur' : '❌ Decoder load error');
+    };
+    document.head.appendChild(script);
+  } else {
+    runDecode();
+  }
+
   event.target.value = '';
 }
 
-function decodeQRFromImageData(imageData){
+function processQRData(rawText){
   try {
-    // Tentative 1 : image telle quelle
-    let result = jsQR(imageData.data, imageData.width, imageData.height);
-
-    // Tentative 2 : si échec, upscaler l'image x2 (modules trop petits pour jsQR)
-    if(!result && imageData.width < 1000){
-      const scale = 2;
-      const tmpCanvas = document.createElement('canvas');
-      tmpCanvas.width  = imageData.width  * scale;
-      tmpCanvas.height = imageData.height * scale;
-      const tmpCtx = tmpCanvas.getContext('2d');
-      // Redessiner via un canvas intermédiaire
-      const src = document.createElement('canvas');
-      src.width  = imageData.width;
-      src.height = imageData.height;
-      src.getContext('2d').putImageData(imageData, 0, 0);
-      tmpCtx.imageSmoothingEnabled = false;
-      tmpCtx.drawImage(src, 0, 0, tmpCanvas.width, tmpCanvas.height);
-      const upscaled = tmpCtx.getImageData(0, 0, tmpCanvas.width, tmpCanvas.height);
-      result = jsQR(upscaled.data, upscaled.width, upscaled.height);
-    }
-
-    if(!result){
-      showToast(lang==='fr' ? '❌ QR Code non détecté' : '❌ QR Code not detected');
-      return;
-    }
-
-    const raw = result.data;
+    const raw = rawText;
     let jsonStr = '';
 
     if(raw.startsWith('PLV:')){
