@@ -638,7 +638,8 @@ const T = {
     bdayName:'Prénom',bdayRelation:'Relation',
     relFamille:'Famille',relAmi:'Ami(e)',relCollegue:'Collègue',
     alertTitle:'🔔 Rappels du jour',alertDismiss:'Compris ✓',
-    alertAdvanceLabel:'⏰ Délai de rappel (en jours)',
+    evReminder:'⏰ Rappel', taskReminder:'⏰ Rappel',
+    alertAdvanceLabel:'⏰ Délai de rappel par défaut',
     postpone:'📅 Reporter',postponeConfirm:'✓ OK',cancelBtn:'✕',
     overdue:'En retard',bdaySoon:'Anniversaire de',inDays:'dans {n} jour(s)'
   },
@@ -695,7 +696,8 @@ const T = {
     bdayName:'First name',bdayRelation:'Relation',
     relFamille:'Family',relAmi:'Friend',relCollegue:'Colleague',
     alertTitle:"🔔 Today's Reminders",alertDismiss:'Got it ✓',
-    alertAdvanceLabel:'⏰ Reminder advance (days)',
+    evReminder:'⏰ Reminder', taskReminder:'⏰ Reminder',
+    alertAdvanceLabel:'⏰ Default Reminder delay',
     postpone:'📅 Postpone',postponeConfirm:'✓ OK',cancelBtn:'✕',
     overdue:'Overdue',bdaySoon:'Birthday of',inDays:'in {n} day(s)'
   }
@@ -1002,6 +1004,7 @@ function renderDay(){
   document.getElementById('lbl-ev-title').textContent=t('evTitle');
   document.getElementById('lbl-ev-time').textContent=t('evTime');
   document.getElementById('lbl-ev-desc').textContent=t('evDesc');
+  document.getElementById('lbl-ev-reminder').textContent=t('evReminder');
   document.getElementById('ev-submit-text').textContent=t('add');
   const ds=dateStr(selectedDate);
   const evs=data.filter(e=>e.date===ds&&e.type==='event').sort((a,b)=>(a.time||'').localeCompare(b.time||''));
@@ -1040,6 +1043,7 @@ function renderTasks(){
   document.getElementById('add-task-label').textContent=t('addTask');
   document.getElementById('lbl-task-title').textContent=t('taskTitle');
   document.getElementById('lbl-task-date').textContent=t('dueDate');
+  document.getElementById('lbl-task-reminder').textContent=t('taskReminder');
   document.getElementById('task-submit-text').textContent=t('add');
   const todayStr=dateStr(new Date());
   const tasks=data.filter(e=>e.type==='task');
@@ -1106,7 +1110,9 @@ function renderExpenses(){
   const exps=data.filter(e=>e.type==='expense'&&e.date&&e.date.startsWith(ms));
   const total=exps.reduce((s,e)=>s+(e.amount||0),0);
   document.getElementById('exp-total').textContent=`${total.toFixed(2)} ${getCurrency()}`;
-  const cats=['Alimentation','Transport','Logement','Santé','Loisirs','Shopping','Éducation','Autres'];
+  const cats=lang==='fr'
+    ?['Alimentation','Transport','Logement','Santé','Loisirs','Shopping','Éducation','Autres']
+    :['Food','Transport','Housing','Health','Leisure','Shopping','Education','Other'];
   document.getElementById('exp-cat-bars').innerHTML=cats.map(cat=>{
     const amt=exps.filter(e=>e.category===cat).reduce((s,e)=>s+(e.amount||0),0);
     const pct=total>0?(amt/total*100):0;
@@ -1142,7 +1148,9 @@ function renderIncome(){
   const incs=data.filter(e=>e.type==='income'&&e.date&&e.date.startsWith(ms));
   const total=incs.reduce((s,e)=>s+(e.amount||0),0);
   document.getElementById('inc-total').textContent=`${total.toFixed(2)} ${getCurrency()}`;
-  const cats=['Salaire','Freelance','Investissements','Loyer reçu','Vente','Bonus','Autres'];
+  const cats=lang==='fr'
+    ?['Salaire','Freelance','Investissements','Loyer reçu','Vente','Bonus','Autres']
+    :['Salary','Freelance','Investments','Rental income','Sales','Bonus','Other'];
   document.getElementById('inc-cat-bars').innerHTML=cats.map(cat=>{
     const amt=incs.filter(e=>e.category===cat).reduce((s,e)=>s+(e.amount||0),0);
     const pct=total>0?(amt/total*100):0;
@@ -1343,6 +1351,7 @@ function renderSettings(){
   document.getElementById('lbl-cover-bg').textContent=t('coverBg');
   document.getElementById('lbl-colors').textContent=t('colors');
   document.getElementById('lbl-backup').textContent=lang==='fr'?'💾 Sauvegarde & Restauration':'💾 Backup & Restore';
+  document.getElementById('lbl-alert-advance').textContent=t('alertAdvanceLabel');
   // Country selector
   const countryEl=document.getElementById('country-select');
   if(countryEl){
