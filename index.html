@@ -451,6 +451,11 @@ th{font-weight:700;opacity:0.8}
 <div id="settings" class="view">
   <button class="btn-back" onclick="showView('toc')">← Menu</button>
   <h2 class="section-title title-font" id="settings-title">⚙️ Paramètres</h2>
+  <div id="settings-install-wrap" style="display:none;text-align:center;margin-bottom:20px">
+    <button onclick="handleInstallClick()" style="background:var(--accent);color:#fff;padding:12px 32px;border-radius:24px;font-weight:700;font-size:1rem;font-family:inherit;box-shadow:0 4px 16px rgba(50,130,184,0.4)">
+      📲 <span id="settings-install-text">Installer l'app</span>
+    </button>
+  </div>
   <div class="max-w">
     <!-- Guide -->
     <div class="form-card">
@@ -1367,6 +1372,14 @@ function renderProfile(){
 
 function renderSettings(){
   document.getElementById('settings-title').textContent=t('settings');
+  // Bouton installer — visible seulement dans le browser, pas en standalone et pas déjà installé
+  const installWrap = document.getElementById('settings-install-wrap');
+  const installTxt = document.getElementById('settings-install-text');
+  if(installWrap){
+    const showBtn = !isStandalone() && localStorage.getItem('planivo_pwa_installed')!=='1';
+    installWrap.style.display = showBtn ? 'block' : 'none';
+    if(installTxt) installTxt.textContent = lang==='fr' ? "Installer l'app" : "Install the app";
+  }
   document.getElementById('lbl-guide').textContent=t('guide');
   document.getElementById('lbl-name-setting').textContent=t('ownerName');
   document.getElementById('lbl-currency').textContent=t('currency');
