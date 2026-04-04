@@ -1867,14 +1867,21 @@ function checkAlerts(){
   if(sessionStorage.getItem('alertDismissed')==='1') return;
   const alerts=[];
 
-  // Helper: is date within item's own reminder window?
+  // Helper: is today within [date - advance, date] window?
   function inItemWindow(ds, itemReminder){
     if(!ds) return false;
-    const advance = itemReminder !== undefined && itemReminder >= 0 ? itemReminder : (parseInt(cfg.alertAdvance)||1);
-    if(advance < 0) return false; // no reminder
-    for(let i=0;i<=advance;i++){
-      const d=new Date(); d.setDate(d.getDate()+i);
-      if(dateStr(d)===ds) return {match:true,days:i};
+    const advance = itemReminder !== undefined && itemReminder >= 0 ? itemReminder : 1;
+    if(itemReminder===-1) return false; // no reminder
+    const today = dateStr(new Date());
+    // Build the start date = event date - advance days
+    const eventDate = new Date(ds+'T00:00:00');
+    const startDate = new Date(eventDate);
+    startDate.setDate(startDate.getDate() - advance);
+    const startStr = dateStr(startDate);
+    // Show if today is between startStr and ds (inclusive)
+    if(today >= startStr && today <= ds){
+      const days = Math.round((eventDate - new Date(today+'T00:00:00'))/(1000*60*60*24));
+      return {match:true, days};
     }
     return false;
   }
@@ -1907,13 +1914,17 @@ function checkAlerts(){
   const bdays=data.filter(e=>e.type==='birthday'&&e.date);
   bdays.forEach(b=>{
     if(b.reminder===-1) return; // no reminder
-    const advance = b.reminder !== undefined && b.reminder >= 0 ? b.reminder : (parseInt(cfg.alertAdvance)||1);
-    for(let i=0;i<=advance;i++){
-      const d=new Date(); d.setDate(d.getDate()+i);
+    const advance = b.reminder !== undefined && b.reminder >= 0 ? b.reminder : 1;
+    const today = new Date();
+    const todayMMDD = `-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    // Check each day from -advance to 0 (today) to see if birthday falls within window
+    for(let i=-advance;i<=0;i++){
+      const d=new Date(); d.setDate(d.getDate()-i);
       const mmdd=`-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       if(b.date.endsWith(mmdd)){
+        const daysUntil = -i;
         const age=calcAge(b.date);
-        alerts.push({icon:'🎂',text:`<strong>${whenLabel(i)}</strong> — ${b.title} (${age} ${t('age')})`});
+        alerts.push({icon:'🎂',text:`<strong>${whenLabel(daysUntil)}</strong> — ${b.title} (${age} ${t('age')})`});
         break;
       }
     }
