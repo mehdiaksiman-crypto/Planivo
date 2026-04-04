@@ -1716,11 +1716,11 @@ function _showQRSync(){
   try {
     new QRCode(qrDiv, {
       text: finalData,
-      width: 220,
-      height: 220,
+      width: 400,
+      height: 400,
       colorDark: '#000000',
       colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
+      correctLevel: QRCode.CorrectLevel.L
     });
   } catch(e) {
     qrDiv.innerHTML = '<p style="color:var(--red);padding:20px">' +
@@ -1770,7 +1770,27 @@ function importFromQRImage(event){
 
 function decodeQRFromImageData(imageData){
   try {
-    const result = jsQR(imageData.data, imageData.width, imageData.height);
+    // Tentative 1 : image telle quelle
+    let result = jsQR(imageData.data, imageData.width, imageData.height);
+
+    // Tentative 2 : si échec, upscaler l'image x2 (modules trop petits pour jsQR)
+    if(!result && imageData.width < 1000){
+      const scale = 2;
+      const tmpCanvas = document.createElement('canvas');
+      tmpCanvas.width  = imageData.width  * scale;
+      tmpCanvas.height = imageData.height * scale;
+      const tmpCtx = tmpCanvas.getContext('2d');
+      // Redessiner via un canvas intermédiaire
+      const src = document.createElement('canvas');
+      src.width  = imageData.width;
+      src.height = imageData.height;
+      src.getContext('2d').putImageData(imageData, 0, 0);
+      tmpCtx.imageSmoothingEnabled = false;
+      tmpCtx.drawImage(src, 0, 0, tmpCanvas.width, tmpCanvas.height);
+      const upscaled = tmpCtx.getImageData(0, 0, tmpCanvas.width, tmpCanvas.height);
+      result = jsQR(upscaled.data, upscaled.width, upscaled.height);
+    }
+
     if(!result){
       showToast(lang==='fr' ? '❌ QR Code non détecté' : '❌ QR Code not detected');
       return;
