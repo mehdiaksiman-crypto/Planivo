@@ -1673,9 +1673,17 @@ function _showQRSync(){
   modal.style.display = 'block';
   qrDiv.innerHTML = '';
 
+  // ── Option A : config + 30 dernières entrées seulement ──
+  // Un QR fiable ne peut pas contenir plus de ~1500 bytes utiles.
+  // Pour un transfert complet, l'utilisateur doit utiliser l'export JSON.
+  const MAX_ENTRIES = 30;
+  const totalEntries = data.length;
+  const slicedData = data.slice(-MAX_ENTRIES);
+  const isTruncated = totalEntries > MAX_ENTRIES;
+
   const payload = {
     v: '1.0',
-    d: data,
+    d: slicedData,
     c: {
       ownerName: cfg.ownerName,
       currency: cfg.currency,
@@ -1691,7 +1699,7 @@ function _showQRSync(){
 
   let jsonStr = JSON.stringify(payload);
 
-  // Compresser avec LZString si disponible
+  // Compresser avec LZString
   let compressed = jsonStr;
   let isCompressed = false;
   if(typeof LZString !== 'undefined'){
@@ -1702,17 +1710,57 @@ function _showQRSync(){
   const finalData = (isCompressed ? 'PLV:' : 'PLN:') + compressed;
   const byteSize = new Blob([finalData]).size;
 
-  // QR max fiable ~2500 bytes
-  if(byteSize > 2500){
-    warning.style.display = 'block';
-    const excess = Math.round(byteSize / 1024 * 10) / 10;
+  // Afficher avertissement si données tronquées OU si encore trop lourd
+  warning.style.display = 'block';
+  if(byteSize > 1500){
+    // Même avec 30 entrées c'est trop lourd — réduire encore
+    const reducedData = data.slice(-10);
+    const reducedPayload = Object.assign({}, payload, { d: reducedData });
+    let reducedJson = JSON.stringify(reducedPayload);
+    let reducedCompressed = typeof LZString !== 'undefined'
+      ? LZString.compressToEncodedURIComponent(reducedJson)
+      : reducedJson;
+    const reducedFinal = (typeof LZString !== 'undefined' ? 'PLV:' : 'PLN:') + reducedCompressed;
+    const reducedSize = new Blob([reducedFinal]).size;
+
+    if(reducedSize > 1500){
+      // Même 10 entrées = trop lourd, on transfère config uniquement
+      const cfgOnlyPayload = { v: '1.0', d: [], c: payload.c };
+      let cfgJson = JSON.stringify(cfgOnlyPayload);
+      let cfgCompressed = typeof LZString !== 'undefined'
+        ? LZString.compressToEncodedURIComponent(cfgJson)
+        : cfgJson;
+      const cfgFinal = (typeof LZString !== 'undefined' ? 'PLV:' : 'PLN:') + cfgCompressed;
+      warning.textContent = lang === 'fr'
+        ? '⚠️ Données trop volumineuses. Ce QR transfère uniquement votre configuration (thème, langue, devise). Pour les données complètes : Exporter mes données → JSON.'
+        : '⚠️ Data too large. This QR transfers your settings only (theme, language, currency). For full data: Export my data → JSON.';
+      generateQR(qrDiv, cfgFinal, lang);
+    } else {
+      warning.textContent = lang === 'fr'
+        ? '⚠️ Beaucoup de données (' + totalEntries + ' entrées). Ce QR transfère les 10 dernières entrées + votre configuration. Pour tout : Exporter mes données → JSON.'
+        : '⚠️ Large dataset (' + totalEntries + ' entries). This QR transfers the last 10 entries + your settings. For everything: Export my data → JSON.';
+      generateQR(qrDiv, reducedFinal, lang);
+    }
+  } else if(isTruncated){
     warning.textContent = lang === 'fr'
-      ? '⚠️ Vos données (' + excess + ' KB) sont volumineuses. Le QR peut être difficile à scanner. Utilisez plutôt l\'export JSON pour un transfert complet.'
-      : '⚠️ Your data (' + excess + ' KB) is large. The QR may be hard to scan. Use JSON export for a complete transfer.';
+      ? '⚠️ Vous avez ' + totalEntries + ' entrées. Ce QR transfère les 30 dernières + votre configuration. Pour tout transférer : Exporter mes données → JSON.'
+      : '⚠️ You have ' + totalEntries + ' entries. This QR transfers the last 30 + your settings. For everything: Export my data → JSON.';
+    generateQR(qrDiv, finalData, lang);
   } else {
     warning.style.display = 'none';
+    generateQR(qrDiv, finalData, lang);
   }
 
+  steps.textContent = lang === 'fr'
+    ? '1. Ouvrez Planivo sur votre autre appareil\n2. Param\u00e8tres \u2192 Importer QR\n3. Chargez une capture du QR'
+    : '1. Open Planivo on your other device\n2. Settings \u2192 Import QR\n3. Upload a screenshot of the QR';
+  steps.style.whiteSpace = 'pre-line';
+
+  modal.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+// ── Génère le QR dans le div cible ──────────────────────────────────────────
+function generateQR(qrDiv, finalData, lang){
   try {
     new QRCode(qrDiv, {
       text: finalData,
@@ -1724,16 +1772,11 @@ function _showQRSync(){
     });
   } catch(e) {
     qrDiv.innerHTML = '<p style="color:var(--red);padding:20px">' +
-      (lang==='fr' ? '❌ Données trop volumineuses pour un QR. Utilisez l\'export JSON.' : '❌ Data too large for QR. Use JSON export.') +
+      (lang==='fr'
+        ? '❌ Données encore trop volumineuses. Utilisez l\'export JSON.'
+        : '❌ Data still too large. Use JSON export.') +
       '</p>';
   }
-
-  steps.textContent = lang === 'fr'
-    ? '1. Ouvrez Planivo sur votre autre appareil\n2. Param\u00e8tres \u2192 Importer QR\n3. Chargez une capture du QR'
-    : '1. Open Planivo on your other device\n2. Settings \u2192 Import QR\n3. Upload a screenshot of the QR';
-  steps.style.whiteSpace = 'pre-line';
-
-  modal.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
 function closeQR(){
