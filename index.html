@@ -964,13 +964,13 @@ function renderYear(){
     const d=document.createElement('div');d.className='month-card';
     d.innerHTML=`<h2 style="font-size:1.3rem;font-weight:700;margin-bottom:8px">${mName}</h2>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <div style="display:inline-block;padding:5px 14px;border-radius:20px;background:${evCount>0?'var(--accent)':'var(--bg)'};color:${evCount>0?'#fff':'var(--text)'};font-weight:600;font-size:0.85rem">
+        <div style="display:inline-block;padding:7px 16px;border-radius:20px;background:${evCount>0?'var(--accent)':'var(--bg)'};color:${evCount>0?'#fff':'var(--text)'};font-weight:700;font-size:0.95rem">
           ${evCount} ${lang==='fr'?(evCount>1?'événements':'événement'):(evCount>1?'events':'event')}
         </div>
-        <div style="display:inline-block;padding:5px 14px;border-radius:20px;background:${tkCount>0?'var(--green)':'var(--bg)'};color:${tkCount>0?'#fff':'var(--text)'};font-weight:600;font-size:0.85rem">
+        <div style="display:inline-block;padding:7px 16px;border-radius:20px;background:${tkCount>0?'var(--green)':'var(--bg)'};color:${tkCount>0?'#fff':'var(--text)'};font-weight:700;font-size:0.95rem">
           ${tkCount} ${lang==='fr'?(tkCount>1?'tâches':'tâche'):(tkCount>1?'tasks':'task')}
         </div>
-        <div style="display:inline-block;padding:5px 14px;border-radius:20px;background:${bdCount>0?'var(--amber)':'var(--bg)'};color:${bdCount>0?'#fff':'var(--text)'};font-weight:600;font-size:0.85rem">
+        <div style="display:inline-block;padding:7px 16px;border-radius:20px;background:${bdCount>0?'var(--amber)':'var(--bg)'};color:${bdCount>0?'#fff':'var(--text)'};font-weight:700;font-size:0.95rem">
           ${bdCount} ${lang==='fr'?(bdCount>1?'anniversaires':'anniversaire'):(bdCount>1?'birthdays':'birthday')}
         </div>
       </div>`;
