@@ -724,6 +724,13 @@ function showToast(msg){
   document.body.appendChild(el);setTimeout(()=>el.remove(),2800);
 }
 function dateStr(d){return d.toISOString().split('T')[0]}
+function reminderLabel(r){
+  const fr=lang==='fr';
+  if(r===undefined||r===null) return '';
+  if(r===-1) return fr?'⏰ Pas de rappel':'⏰ No reminder';
+  if(r===0)  return fr?'⏰ Rappel : jour même':'⏰ Reminder: same day';
+  return fr?`⏰ Rappel : ${r} jour${r>1?'s':''} avant`:`⏰ Reminder: ${r} day${r>1?'s':''} before`;
+}
 function calcAge(bd){
   const today=new Date(),b=new Date(bd+'T00:00:00');
   let age=today.getFullYear()-b.getFullYear();
@@ -1048,6 +1055,7 @@ function renderDay(){
       <div class="info">
         <h3>${e.time?`🕐 ${e.time} — `:''}${e.title}</h3>
         ${e.description?`<p>${e.description}</p>`:''}
+        <p style="font-size:0.8rem;opacity:0.6;margin-top:4px">${reminderLabel(e.reminder)}</p>
       </div>
       <button class="btn-delete" onclick="deleteItem('${e.id}','day')" title="Supprimer">🗑️</button>
     </div>`).join('');
@@ -1077,6 +1085,7 @@ function renderTasks(){
             <input type="checkbox" style="margin-top:4px;width:20px;height:20px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="toggleTask('${task.id}',true)">
             <div class="info" style="flex:1">
               <h3>${task.title}</h3>${dateHTML}
+              <p style="font-size:0.8rem;opacity:0.6;margin-top:4px">${reminderLabel(task.reminder)}</p>
               <div class="postpone-row" id="pp-row-${task.id}">
                 <input type="date" id="pp-date-${task.id}" min="${todayStr}" style="padding:6px 10px;border-radius:8px;border:2px solid var(--primary);background:var(--bg);color:var(--text);font-size:0.9rem">
                 <button onclick="confirmPostpone('${task.id}')" style="background:var(--green);color:#fff;padding:6px 14px;border-radius:8px;font-weight:700;font-size:0.85rem">${t('postponeConfirm')}</button>
@@ -1350,6 +1359,7 @@ function renderProfile(){
             <h3>🎂 ${b.title}${ageStr}${autoLabel}</h3>
             ${b.date?`<p>📅 ${dateStr2}</p>`:''}
             <span class="rel-badge ${relClass[b.relation]||'rel-famille'}">${relLabel[b.relation]||b.relation}</span>
+            <p style="font-size:0.8rem;opacity:0.6;margin-top:6px">${reminderLabel(b.reminder)}</p>
           </div>
           ${deleteBtn}
         </div>`;
