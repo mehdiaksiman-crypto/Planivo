@@ -1967,13 +1967,13 @@ checkAlerts();
 (function(){
   const banner = document.getElementById('install-banner');
   if(!banner) return;
-  // Vérification multiple pour détecter mode standalone
   const standalone = window.matchMedia('(display-mode: standalone)').matches
     || window.matchMedia('(display-mode: fullscreen)').matches
     || window.matchMedia('(display-mode: minimal-ui)').matches
     || window.navigator.standalone === true
     || document.referrer.startsWith('android-app://')
-    || window.location.href.includes('?source=pwa');
+    || window.location.href.includes('?source=pwa')
+    || localStorage.getItem('planivo_pwa_installed') === '1';
   if(standalone){
     banner.style.display='none';
   } else {
@@ -2008,7 +2008,8 @@ function isStandalone(){
     || window.matchMedia('(display-mode: minimal-ui)').matches
     || window.navigator.standalone===true
     || document.referrer.startsWith('android-app://')
-    || window.location.href.includes('?source=pwa');
+    || window.location.href.includes('?source=pwa')
+    || localStorage.getItem('planivo_pwa_installed')==='1';
 }
 
 // ── HAMBURGER NAVIGATION ───────────────────────────────────────────────────
@@ -2069,7 +2070,10 @@ function handleInstallClick(){
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then(c=>{
       deferredPrompt=null;
-      if(c.outcome==='accepted'){const b=document.getElementById('install-banner');if(b)b.style.display='none';}
+      if(c.outcome==='accepted'){
+        localStorage.setItem('planivo_pwa_installed','1');
+        const b=document.getElementById('install-banner');if(b)b.style.display='none';
+      }
     });
   } else {
     showInstallModal();
@@ -2128,6 +2132,7 @@ function closeInstallModal(){
 }
 window.addEventListener('appinstalled',()=>{
   deferredPrompt=null;
+  localStorage.setItem('planivo_pwa_installed','1');
   const b=document.getElementById('install-banner');
   if(b) b.style.display='none';
 });
