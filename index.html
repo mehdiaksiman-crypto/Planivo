@@ -29,6 +29,11 @@ button{cursor:pointer;transition:transform 0.15s,opacity 0.15s;border:none;font-
 button:hover{transform:scale(1.04);opacity:0.93}
 button:active{transform:scale(0.97)}
 input,select,textarea{font-family:inherit;outline:none}
+input[type=date],input[type=time]{color-scheme:dark}
+input[type=date]::-webkit-calendar-picker-indicator,
+input[type=time]::-webkit-calendar-picker-indicator{filter:invert(1);cursor:pointer;opacity:0.8}
+input[type=date]::-webkit-calendar-picker-indicator:hover,
+input[type=time]::-webkit-calendar-picker-indicator:hover{opacity:1}
 .spinner{border:3px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;width:18px;height:18px;animation:spin 0.6s linear infinite;display:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--accent);color:#fff;padding:12px 24px;border-radius:12px;font-weight:600;z-index:9999;animation:fadeIn 0.3s ease}
@@ -964,13 +969,13 @@ function renderYear(){
     const d=document.createElement('div');d.className='month-card';
     d.innerHTML=`<h2 style="font-size:1.3rem;font-weight:700;margin-bottom:8px">${mName}</h2>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <div style="display:inline-block;padding:7px 16px;border-radius:20px;background:${evCount>0?'var(--accent)':'var(--bg)'};color:${evCount>0?'#fff':'var(--text)'};font-weight:700;font-size:0.95rem">
+        <div style="display:inline-block;padding:7px 16px;border-radius:20px;background:${evCount>0?'var(--accent)':'rgba(50,130,184,0.15)'};color:${evCount>0?'#fff':'var(--accent)'};font-weight:700;font-size:0.95rem">
           ${evCount} ${lang==='fr'?(evCount>1?'événements':'événement'):(evCount>1?'events':'event')}
         </div>
-        <div style="display:inline-block;padding:7px 16px;border-radius:20px;background:${tkCount>0?'var(--green)':'var(--bg)'};color:${tkCount>0?'#fff':'var(--text)'};font-weight:700;font-size:0.95rem">
+        <div style="display:inline-block;padding:7px 16px;border-radius:20px;background:${tkCount>0?'var(--green)':'rgba(16,185,129,0.15)'};color:${tkCount>0?'#fff':'var(--green)'};font-weight:700;font-size:0.95rem">
           ${tkCount} ${lang==='fr'?(tkCount>1?'tâches':'tâche'):(tkCount>1?'tasks':'task')}
         </div>
-        <div style="display:inline-block;padding:7px 16px;border-radius:20px;background:${bdCount>0?'var(--amber)':'var(--bg)'};color:${bdCount>0?'#fff':'var(--text)'};font-weight:700;font-size:0.95rem">
+        <div style="display:inline-block;padding:7px 16px;border-radius:20px;background:${bdCount>0?'var(--amber)':'rgba(245,158,11,0.15)'};color:${bdCount>0?'#fff':'var(--amber)'};font-weight:700;font-size:0.95rem">
           ${bdCount} ${lang==='fr'?(bdCount>1?'anniversaires':'anniversaire'):(bdCount>1?'birthdays':'birthday')}
         </div>
       </div>`;
