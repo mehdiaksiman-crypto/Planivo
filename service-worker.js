@@ -1,4 +1,4 @@
-const CACHE_NAME = 'planivo-v9';
+const CACHE_NAME = 'planivo-v10';
 const ASSETS = [
   '/Planivo/',
   '/Planivo/index.html',
