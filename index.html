@@ -177,7 +177,7 @@ th{font-weight:700;opacity:0.8}
   .month-card{padding:10px}
 }
 /* ── INSTALL BUTTON ── */
-#install-banner{display:flex;align-items:center;gap:10px;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:2000;background:#3282b8;color:#fff;border:none;padding:14px 28px;border-radius:28px;font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,0.4);white-space:nowrap;font-family:inherit;animation:fadeIn 0.4s ease}
+#install-banner{display:none;align-items:center;gap:10px;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:2000;background:#3282b8;color:#fff;border:none;padding:14px 28px;border-radius:28px;font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,0.4);white-space:nowrap;font-family:inherit;animation:fadeIn 0.4s ease}
 #install-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9998;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
 #install-modal.show{display:flex}
 .install-box{background:var(--surface);border-radius:20px;padding:24px;max-width:480px;width:100%;border:2px solid var(--accent)}
@@ -1963,24 +1963,7 @@ document.getElementById('cover').style.display='flex';
 renderCover();
 migrateProfileBirthdays();
 checkAlerts();
-// Bouton installer — masqué si app déjà installée
-(function(){
-  const banner = document.getElementById('install-banner');
-  if(!banner) return;
-  const standalone = window.matchMedia('(display-mode: standalone)').matches
-    || window.matchMedia('(display-mode: fullscreen)').matches
-    || window.matchMedia('(display-mode: minimal-ui)').matches
-    || window.navigator.standalone === true
-    || document.referrer.startsWith('android-app://')
-    || window.location.href.includes('?source=pwa')
-    || localStorage.getItem('planivo_pwa_installed') === '1';
-  if(standalone){
-    banner.style.display='none';
-  } else {
-    const txt = document.getElementById('install-btn-text');
-    if(txt) txt.textContent = lang==='fr' ? "Installer l'app" : "Install the app";
-  }
-})();
+// Bouton installer — caché par défaut, affiché uniquement via beforeinstallprompt
 if('serviceWorker' in navigator){
   // Désinscrire tous les anciens service workers
   navigator.serviceWorker.getRegistrations().then(regs=>{
@@ -1998,7 +1981,10 @@ if('serviceWorker' in navigator){
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{
   e.preventDefault();
+  // Ne jamais montrer si déjà installé ou en mode standalone
+  if(isStandalone() || localStorage.getItem('planivo_pwa_installed')==='1') return;
   deferredPrompt=e;
+  showInstallBanner();
 });
 
 // ── STANDALONE CHECK ───────────────────────────────────────────────────────
