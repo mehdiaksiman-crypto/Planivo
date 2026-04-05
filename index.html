@@ -515,34 +515,11 @@ th{font-weight:700;opacity:0.8}
           <span id="lbl-import">📤 Restaurer mes données</span>
         </button>
       </div>
-      <button onclick="showQRSync()" class="btn-submit" style="background:var(--accent);width:100%">
-        <span id="lbl-qr">📱 Transférer vers un autre appareil (QR Code)</span>
       </button>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
       <div id="backup-status" style="margin-top:16px;text-align:center;font-size:0.95rem;font-weight:600;min-height:24px"></div>
 
-      <!-- QR Modal -->
-      <div id="qr-modal" style="display:none;margin-top:24px;background:var(--bg);border-radius:16px;padding:24px;text-align:center;border:2px solid var(--accent)">
-        <h3 id="qr-modal-title" style="font-weight:700;font-size:1.1rem;margin-bottom:8px">📱 Scanner avec votre autre appareil</h3>
-        <p id="qr-modal-desc" style="font-size:0.85rem;opacity:0.7;margin-bottom:16px">Ouvrez Planivo sur votre téléphone → Paramètres → Importer QR</p>
-        <div id="qr-size-warning" style="display:none;background:rgba(245,158,11,0.15);border:1px solid var(--amber);border-radius:10px;padding:10px;margin-bottom:16px;font-size:0.85rem;color:var(--amber)"></div>
-        <div id="qr-container" style="display:flex;justify-content:center;margin-bottom:16px">
-          <div id="qr-code" style="background:#fff;padding:16px;border-radius:12px;display:inline-block;max-width:300px;overflow:hidden"></div>
-        </div>
-        <p id="qr-steps" style="font-size:0.82rem;opacity:0.65;line-height:1.6"></p>
-        <button onclick="downloadQR()" class="btn-submit" style="margin-top:16px;padding:10px 28px;border-radius:10px;background:var(--green);margin-right:8px" id="btn-download-qr">⬇️ Télécharger le QR</button>
-        <button onclick="closeQR()" class="btn-secondary" style="margin-top:16px;padding:10px 28px;border-radius:10px" id="btn-close-qr">✕ Fermer</button>
-      </div>
 
-      <!-- QR Import section -->
-      <div style="margin-top:16px;border-top:1px solid rgba(255,255,255,0.1);padding-top:16px">
-        <p id="lbl-qr-import-title" style="font-weight:600;font-size:0.9rem;margin-bottom:10px;opacity:0.8">📷 Importer depuis un QR Code</p>
-        <button onclick="document.getElementById('qr-image-input').click()" class="btn-secondary" style="width:100%;padding:12px;border-radius:10px" id="btn-scan-qr">
-          <span id="lbl-scan-qr">📸 Charger une capture du QR Code</span>
-        </button>
-        <input type="file" id="qr-image-input" accept="image/*" style="display:none" onchange="importFromQRImage(event)">
-        <p id="lbl-qr-tip" style="font-size:0.8rem;opacity:0.55;margin-top:8px;text-align:center">Faites une capture d'écran du QR Code et chargez-la ici</p>
-      </div>
     </div>
 
   </div>
@@ -1402,14 +1379,6 @@ function renderSettings(){
     :'Export your data to save it or transfer it to another device. If you clear your browser, import this file to restore everything.';
   document.getElementById('lbl-export').textContent=lang==='fr'?'📥 Exporter mes données':'📥 Export my data';
   document.getElementById('lbl-import').textContent=lang==='fr'?'📤 Restaurer mes données':'📤 Restore my data';
-  document.getElementById('lbl-qr').textContent=lang==='fr'?'📱 Transférer vers un autre appareil (QR Code)':'📱 Transfer to another device (QR Code)';
-  document.getElementById('lbl-qr-import-title').textContent=lang==='fr'?'📷 Importer depuis un QR Code':'📷 Import from QR Code';
-  document.getElementById('lbl-scan-qr').textContent=lang==='fr'?'📸 Charger une capture du QR Code':'📸 Upload a QR Code screenshot';
-  document.getElementById('lbl-qr-tip').textContent=lang==='fr'?'Faites une capture d\'écran du QR Code et chargez-la ici':'Take a screenshot of the QR Code and upload it here';
-  document.getElementById('btn-close-qr').textContent=lang==='fr'?'✕ Fermer':'✕ Close';
-  document.getElementById('btn-download-qr').textContent=lang==='fr'?'⬇️ Télécharger le QR':'⬇️ Download QR';
-  document.getElementById('qr-modal-title').textContent=lang==='fr'?'📱 Scanner avec votre autre appareil':'📱 Scan with your other device';
-  document.getElementById('qr-modal-desc').textContent=lang==='fr'?'Ouvrez Planivo sur votre téléphone → Paramètres → Importer QR':'Open Planivo on your phone → Settings → Import QR';
   document.getElementById('save-name-text').textContent=t('confirm');
   document.getElementById('save-currency-text').textContent=t('confirm');
   document.getElementById('btn-reset-colors').textContent=`🔄 ${t('reset')}`;
@@ -1645,238 +1614,22 @@ function importData(event){
 
 
 // ── QR CODE SYNC ───────────────────────────────────────────────────────────
-function loadQRLibs(callback){
-  if(typeof QRCode !== 'undefined' && typeof LZString !== 'undefined'){
-    callback(); return;
-  }
-  const s1 = document.createElement('script');
-  s1.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
-  s1.onload = function(){
-    const s2 = document.createElement('script');
-    s2.src = 'https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js';
-    s2.onload = callback;
-    s2.onerror = callback;
-    document.head.appendChild(s2);
-  };
-  s1.onerror = callback;
-  document.head.appendChild(s1);
-}
 
-function showQRSync(){
-  loadQRLibs(function(){ _showQRSync(); });
-}
 
-function _showQRSync(){
-  const modal = document.getElementById('qr-modal');
-  const qrDiv = document.getElementById('qr-code');
-  const warning = document.getElementById('qr-size-warning');
-  const steps = document.getElementById('qr-steps');
 
-  modal.style.display = 'block';
-  qrDiv.innerHTML = '';
 
-  // ── Option A : config + 30 dernières entrées seulement ──
-  // Un QR fiable ne peut pas contenir plus de ~1500 bytes utiles.
-  // Pour un transfert complet, l'utilisateur doit utiliser l'export JSON.
-  const MAX_ENTRIES = 30;
-  const totalEntries = data.length;
-  const slicedData = data.slice(-MAX_ENTRIES);
-  const isTruncated = totalEntries > MAX_ENTRIES;
 
-  const payload = {
-    v: '1.0',
-    d: slicedData,
-    c: {
-      ownerName: cfg.ownerName,
-      currency: cfg.currency,
-      coverBg: cfg.coverBg,
-      bg: cfg.bg,
-      surface: cfg.surface,
-      text: cfg.text,
-      primary: cfg.primary,
-      accent: cfg.accent,
-      lang: cfg.lang
-    }
-  };
-
-  let jsonStr = JSON.stringify(payload);
-
-  // Compresser avec LZString
-  let compressed = jsonStr;
-  let isCompressed = false;
-  if(typeof LZString !== 'undefined'){
-    compressed = LZString.compressToEncodedURIComponent(jsonStr);
-    isCompressed = true;
-  }
-
-  const finalData = (isCompressed ? 'PLV:' : 'PLN:') + compressed;
-  const byteSize = new Blob([finalData]).size;
-
-  // Afficher avertissement si données tronquées OU si encore trop lourd
-  warning.style.display = 'block';
-  if(byteSize > 1500){
-    // Même avec 30 entrées c'est trop lourd — réduire encore
-    const reducedData = data.slice(-10);
-    const reducedPayload = Object.assign({}, payload, { d: reducedData });
-    let reducedJson = JSON.stringify(reducedPayload);
-    let reducedCompressed = typeof LZString !== 'undefined'
-      ? LZString.compressToEncodedURIComponent(reducedJson)
-      : reducedJson;
-    const reducedFinal = (typeof LZString !== 'undefined' ? 'PLV:' : 'PLN:') + reducedCompressed;
-    const reducedSize = new Blob([reducedFinal]).size;
-
-    if(reducedSize > 1500){
-      // Même 10 entrées = trop lourd, on transfère config uniquement
-      const cfgOnlyPayload = { v: '1.0', d: [], c: payload.c };
-      let cfgJson = JSON.stringify(cfgOnlyPayload);
-      let cfgCompressed = typeof LZString !== 'undefined'
-        ? LZString.compressToEncodedURIComponent(cfgJson)
-        : cfgJson;
-      const cfgFinal = (typeof LZString !== 'undefined' ? 'PLV:' : 'PLN:') + cfgCompressed;
-      warning.textContent = lang === 'fr'
-        ? '⚠️ Données trop volumineuses. Ce QR transfère uniquement votre configuration (thème, langue, devise). Pour les données complètes : Exporter mes données → JSON.'
-        : '⚠️ Data too large. This QR transfers your settings only (theme, language, currency). For full data: Export my data → JSON.';
-      generateQR(qrDiv, cfgFinal, lang);
-    } else {
-      warning.textContent = lang === 'fr'
-        ? '⚠️ Beaucoup de données (' + totalEntries + ' entrées). Ce QR transfère les 10 dernières entrées + votre configuration. Pour tout : Exporter mes données → JSON.'
-        : '⚠️ Large dataset (' + totalEntries + ' entries). This QR transfers the last 10 entries + your settings. For everything: Export my data → JSON.';
-      generateQR(qrDiv, reducedFinal, lang);
-    }
-  } else if(isTruncated){
-    warning.textContent = lang === 'fr'
-      ? '⚠️ Vous avez ' + totalEntries + ' entrées. Ce QR transfère les 30 dernières + votre configuration. Pour tout transférer : Exporter mes données → JSON.'
-      : '⚠️ You have ' + totalEntries + ' entries. This QR transfers the last 30 + your settings. For everything: Export my data → JSON.';
-    generateQR(qrDiv, finalData, lang);
-  } else {
-    warning.style.display = 'none';
-    generateQR(qrDiv, finalData, lang);
-  }
-
-  steps.textContent = lang === 'fr'
-    ? '1. Ouvrez Planivo sur votre autre appareil\n2. Param\u00e8tres \u2192 Importer QR\n3. Chargez une capture du QR'
-    : '1. Open Planivo on your other device\n2. Settings \u2192 Import QR\n3. Upload a screenshot of the QR';
-  steps.style.whiteSpace = 'pre-line';
-
-  modal.scrollIntoView({behavior:'smooth', block:'center'});
-}
 
 // ── Génère le QR dans le div cible ──────────────────────────────────────────
-function generateQR(qrDiv, finalData, lang){
-  try {
-    new QRCode(qrDiv, {
-      text: finalData,
-      width: 800,
-      height: 800,
-      colorDark: '#000000',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.L
-    });
-  } catch(e) {
-    qrDiv.innerHTML = '<p style="color:var(--red);padding:20px">' +
-      (lang==='fr'
-        ? '❌ Données encore trop volumineuses. Utilisez l\'export JSON.'
-        : '❌ Data still too large. Use JSON export.') +
-      '</p>';
-  }
-}
 
-function closeQR(){
-  document.getElementById('qr-modal').style.display = 'none';
-}
 
-function downloadQR(){
-  const canvas = document.querySelector("#qr-code canvas");
-  if(!canvas){ showToast(lang==="fr" ? "❌ QR non généré" : "❌ QR not generated"); return; }
-  const clean = document.createElement("canvas");
-  clean.width = 800; clean.height = 800;
-  const ctx = clean.getContext("2d");
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, 400, 400);
-  ctx.drawImage(canvas, 0, 0, 800, 800);
-  const link = document.createElement("a");
-  link.download = "planivo-qr.png";
-  link.href = clean.toDataURL("image/png");
-  link.click();
-  showToast(lang==="fr" ? "✅ QR téléchargé !" : "✅ QR downloaded!");
-}
 
-function importFromQRImage(event){
-  const file = event.target.files[0];
-  if(!file) return;
 
-  const objectUrl = URL.createObjectURL(file);
 
-  function runDecode(){
-    const codeReader = new ZXing.BrowserQRCodeReader();
-    codeReader.decodeFromImageUrl(objectUrl)
-      .then(function(result){
-        URL.revokeObjectURL(objectUrl);
-        processQRData(result.text);
-      })
-      .catch(function(){
-        URL.revokeObjectURL(objectUrl);
-        showToast(lang==='fr' ? '❌ QR Code non détecté' : '❌ QR Code not detected');
-      });
-  }
 
-  if(typeof ZXing === 'undefined'){
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/@zxing/library@0.19.2/umd/index.min.js';
-    script.onload = runDecode;
-    script.onerror = function(){
-      showToast(lang==='fr' ? '❌ Erreur de chargement du décodeur' : '❌ Decoder load error');
-    };
-    document.head.appendChild(script);
-  } else {
-    runDecode();
-  }
 
-  event.target.value = '';
-}
 
-function processQRData(rawText){
-  try {
-    const raw = rawText;
-    let jsonStr = '';
 
-    if(raw.startsWith('PLV:')){
-      // Compressé LZString
-      jsonStr = LZString.decompressFromEncodedURIComponent(raw.substring(4));
-    } else if(raw.startsWith('PLN:')){
-      // Non compressé
-      jsonStr = raw.substring(4);
-    } else {
-      showToast(lang==='fr' ? '❌ QR non reconnu (pas un QR Planivo)' : '❌ QR not recognized');
-      return;
-    }
-
-    const payload = JSON.parse(jsonStr);
-    if(!payload.d || !Array.isArray(payload.d)) throw new Error('Format invalide');
-
-    const msg = lang==='fr'
-      ? 'Restaurer ' + payload.d.length + ' entrées depuis le QR Code ? Vos données actuelles seront remplacées.'
-      : 'Restore ' + payload.d.length + ' entries from QR Code? Your current data will be replaced.';
-    if(!confirm(msg)) return;
-
-    data = payload.d;
-    saveData(data);
-
-    if(payload.c){
-      cfg = Object.assign({}, defaultConfig, payload.c);
-      saveConfig(cfg);
-      applyConfig();
-    }
-
-    showToast(lang==='fr'
-      ? '✅ ' + data.length + ' entrées restaurées !'
-      : '✅ ' + data.length + ' entries restored!');
-    renderView(currentView);
-
-  } catch(e) {
-    showToast(lang==='fr' ? '❌ Erreur de lecture du QR' : '❌ QR read error');
-  }
-}
 
 
 // ── POSTPONE TASK ──────────────────────────────────────────────────────────
